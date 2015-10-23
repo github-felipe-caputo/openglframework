@@ -1,0 +1,32 @@
+::::::::::::::::::::::::::::::::::::::
+:: IMPORTANTE NOTES TO KEEP IN MIND ::
+::::::::::::::::::::::::::::::::::::::
+
+>> >> >> >> 
+>> Shaders:
+>> >> >> >> 
+
+- Need to keep in mind certain things when dealing with changing variables on OpenGL shaders.
+For instance, changing mat4 to mat3, example:
+
+vec3 vPosition;
+mat4 modelView;
+
+-> WRONG: 
+   vec4 posEyeCoord = mat3(modelView) * vPosition; 
+   Keep in mind how OpenGL deals with matrixes (column major or row major). If you do this it will mess
+   up the calculations because of the matrix
+
+-> CORRECT:
+   vec4 posEyeCoord = modelView * vec4(vPosition, 1.0);
+   posEyeCoord.xyz
+   This would be the correct way to have the calculation occur, and the after that you just need to remember
+   to use ".xyz" to deal with the new variable.
+
+>> >> >> >> >> >> >> 
+>> cmatrix library
+>> >> >> >> >> >> >> 
+
+- DO NOT use this to multiplicate vectors (i.e., make "matrices" with one row and 5 columns). It will not work
+  and it also will not give any compilers erros.
+
