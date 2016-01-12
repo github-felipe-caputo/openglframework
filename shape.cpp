@@ -63,10 +63,6 @@ void Shape::addTriangle(float x0, float y0, float z0,
     normals.push_back(nx);
     normals.push_back(ny);
     normals.push_back(nz);
-
-    numVertices+=3;
-    numNormals+=3;
-    numElements+=3;
 }
 
 /* 
@@ -117,10 +113,6 @@ void Shape::addTriangle(float v0[], float v1[], float v2[]) {
     normals.push_back(nx);
     normals.push_back(ny);
     normals.push_back(nz);
-
-    numVertices+=3;
-    numNormals+=3;
-    numElements+=3;
 }
 
 /* 
@@ -169,10 +161,6 @@ void Shape::addTriangleAndNormals(float x0, float y0, float z0,
     normals.push_back(nx2);
     normals.push_back(ny2);
     normals.push_back(nz2);
-
-    numVertices+=3;
-    numNormals+=3;
-    numElements+=3;
 }
 
 /* 
@@ -220,10 +208,6 @@ void Shape::addTriangleAndNormals(float v0[], float v1[], float v2[],
     normals.push_back(n2[0]);
     normals.push_back(n2[1]);
     normals.push_back(n2[2]);
-
-    numVertices+=3;
-    numNormals+=3;
-    numElements+=3;
 }
 
 /* 
@@ -660,11 +644,14 @@ void Shape::makeCube (int subDiv) {
         }
     }
 
+    numVertices = vertices.size();
+    numNormals = normals.size();
+    numElements = vertices.size(); // in this case elements is the same size as vertices
+
     // Elements
     for(int i = 0; i < numElements; ++i){
         elements.push_back(i);
     }
-
 }
 
 /* 
@@ -768,6 +755,10 @@ void Shape::makeCylinder ( int subDivBase, int subDivHeight, int normalType ) {
         }
     }
 
+    numVertices = vertices.size();
+    numNormals = normals.size();
+    numElements = vertices.size(); // in this case elements is the same size as vertices
+
     // Elements
     for(int i = 0; i < numElements; ++i){
         elements.push_back(i);
@@ -859,9 +850,48 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     addTriangleWithSubdivision(vert[11], vert[10], vert[9], subDiv, normalType);
     addTriangleWithSubdivision(vert[11], vert[6], vert[10], subDiv, normalType);
 
+    numVertices = vertices.size();
+    numNormals = normals.size();
+    numElements = vertices.size(); // in this case elements is the same size as vertices
+
     // Elements
     for(int i = 0; i < numElements; ++i){
         elements.push_back(i);
     }
-
 }      
+
+void Shape::fromObj ( char* filename ) {
+    std::ifstream ifs(filename, std::ifstream::in);
+    std::string line, firstWord;
+    float values[3];
+
+    while(std::getline(ifs, line)) {
+        if(!line.empty()) {
+            std::istringstream ss(line);
+            ss >> firstWord >> values[0] >> values[1] >> values[2];
+
+            // vertices
+            if (!firstWord.compare("v")) {
+                vertices.push_back(values[0]);
+                vertices.push_back(values[1]);
+                vertices.push_back(values[2]);
+            } // normals 
+            else if (!firstWord.compare("vn")) {
+                normals.push_back(values[0]);
+                normals.push_back(values[1]);
+                normals.push_back(values[2]);
+            } // faces
+            else if (!firstWord.compare("f")) {
+                // Wavefront .obj files start counting from 1
+                elements.push_back((int) values[0]-1);
+                elements.push_back((int) values[1]-1);
+                elements.push_back((int) values[2]-1);
+            }
+        }
+        firstWord.clear();
+    }
+
+    numVertices = vertices.size();
+    numNormals = normals.size();
+    numElements = elements.size();
+}

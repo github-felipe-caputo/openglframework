@@ -16,6 +16,11 @@
 
 #include <vector>
 #include <cmath>
+#include <iostream>
+#include <stdio.h>
+
+#include <fstream>
+#include <string>
 
 #include "mathHelper.h"
 
@@ -427,6 +432,7 @@ public:
      */
     void makeSphere ( int subDiv, int normalType );
 
+    void fromObj ( char* filename );
 };
 
 #endif

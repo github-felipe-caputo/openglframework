@@ -186,7 +186,7 @@ Camera::Camera ( int type ) {
 
     viewMatrix = makeViewMatrix(eyePoint, lookAt, up);
     if (type == PROJ_PERSP) {
-        projMatrix = makePerspectiveMatrix( 60.0f, 1.0f, 1.0f, 0.8f, 10.0f );
+        projMatrix = makePerspectiveMatrix( 60.0f, 1.0f, 1.0f, 0.5f, 50.0f );
     } else {
         projMatrix = makeOrthographicMatrix( -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f );
     }
