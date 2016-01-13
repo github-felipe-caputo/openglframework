@@ -644,9 +644,9 @@ void Shape::makeCube (int subDiv) {
         }
     }
 
-    numVertices = vertices.size();
-    numNormals = normals.size();
-    numElements = vertices.size(); // in this case elements is the same size as vertices
+    numVertices = vertices.size()/3;
+    numNormals = normals.size()/3;
+    numElements = numVertices; // in this case elements is the same size as vertices
 
     // Elements
     for(int i = 0; i < numElements; ++i){
@@ -755,9 +755,9 @@ void Shape::makeCylinder ( int subDivBase, int subDivHeight, int normalType ) {
         }
     }
 
-    numVertices = vertices.size();
-    numNormals = normals.size();
-    numElements = vertices.size(); // in this case elements is the same size as vertices
+    numVertices = vertices.size()/3;
+    numNormals = normals.size()/3;
+    numElements = numVertices; // in this case elements is the same size as vertices
 
     // Elements
     for(int i = 0; i < numElements; ++i){
@@ -850,9 +850,9 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     addTriangleWithSubdivision(vert[11], vert[10], vert[9], subDiv, normalType);
     addTriangleWithSubdivision(vert[11], vert[6], vert[10], subDiv, normalType);
 
-    numVertices = vertices.size();
-    numNormals = normals.size();
-    numElements = vertices.size(); // in this case elements is the same size as vertices
+    numVertices = vertices.size()/3;
+    numNormals = normals.size()/3;
+    numElements = numVertices; // in this case elements is the same size as vertices
 
     // Elements
     for(int i = 0; i < numElements; ++i){
@@ -891,7 +891,101 @@ void Shape::fromObj ( char* filename ) {
         firstWord.clear();
     }
 
-    numVertices = vertices.size();
-    numNormals = normals.size();
+    numVertices = vertices.size()/3;
+    numNormals = normals.size()/3;
+    numElements = elements.size();
+}
+
+void Shape::fromObj2 ( char* filename ) {
+    std::ifstream ifs(filename, std::ifstream::in);
+    std::string line, firstWord, aux, aux2;
+    float values[3];
+
+    // aux values
+    vector<float> in_vertices;
+    vector<float> in_uvtextures;
+    vector<float> in_normals;
+    vector<float> in_elements;
+
+    // Reading the file
+    while(std::getline(ifs, line)) {
+        if(!line.empty()) {
+            std::istringstream ss(line);
+            ss >> firstWord;// >> values[0] >> values[1] >> values[2];
+            
+            // vertices
+            if (!firstWord.compare("v")) {
+                ss >> values[0] >> values[1] >> values[2];
+                in_vertices.push_back(values[0]);
+                in_vertices.push_back(values[1]);
+                in_vertices.push_back(values[2]);
+            } // textures
+            else if (!firstWord.compare("vt")) {
+                ss >> values[0] >> values[1];
+                in_uvtextures.push_back(values[0]);
+                in_uvtextures.push_back(values[1]);
+            } // normals 
+            else if (!firstWord.compare("vn")) {
+                ss >> values[0] >> values[1] >> values[2];
+                in_normals.push_back(values[0]);
+                in_normals.push_back(values[1]);
+                in_normals.push_back(values[2]);
+            } // faces
+            else if (!firstWord.compare("f")) { 
+                while(ss >> aux) { // aux is like "1/2/3"
+                    std::istringstream ss2(aux);
+                    while(std::getline(ss2, aux2, '/')) {
+                        in_elements.push_back( atoi(aux2.c_str()) - 1); // Wavefront .obj files start counting from 1
+                    }
+                }
+            }
+            
+        }
+        firstWord.clear();
+    }
+
+    // Filling the index the correct way, we make a map of the faces. IF we see "1/2/3" for the
+    // first time we add on the final "elements" vector, if we see it again we check on this
+    // map what is the index of it, then we add the same index on "elements" again
+    std::map<vector<int>,int> facesValues;
+    int index = 0;
+
+    // we will see each input vertex, so we will for every 3 values on our in_vertices vector
+    for(int i = 0; i < in_elements.size(); i+=3) {
+        vector<int> auxVec;
+        auxVec.push_back(in_elements[i]);
+        auxVec.push_back(in_elements[i+1]);
+        auxVec.push_back(in_elements[i+2]);
+
+        // if "1/2/3" is not on the map
+        if(facesValues.find(auxVec) == facesValues.end()){
+            // lets put the values on the actual vectors we will output
+            int vectorIndex = in_elements[i]*3;
+            int textureIndex = in_elements[i+1]*3;
+            int normalIndex = in_elements[i+2]*3;
+
+            vertices.push_back(in_vertices[vectorIndex]);
+            vertices.push_back(in_vertices[vectorIndex+1]);
+            vertices.push_back(in_vertices[vectorIndex+2]);
+
+            uvtextures.push_back(in_uvtextures[textureIndex]);
+            uvtextures.push_back(in_uvtextures[textureIndex+1]);
+
+            normals.push_back(in_normals[normalIndex]);
+            normals.push_back(in_normals[normalIndex+1]);
+            normals.push_back(in_normals[normalIndex+2]);
+
+            index = (vertices.size()/3) - 1;
+            elements.push_back(index);
+            facesValues.insert( std::pair<vector<int>,int> (auxVec,index) );
+        } // if it is on the map, just add it again
+        else {
+            elements.push_back(facesValues.find(auxVec)->second);
+        }
+    }
+
+    numVertices = vertices.size()/3;
+    numTextures = uvtextures.size()/2;
+    numNormals = normals.size()/3;
     numElements = elements.size();
 }

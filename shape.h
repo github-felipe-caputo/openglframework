@@ -15,6 +15,7 @@
 #include <GL/gl.h>
 
 #include <vector>
+#include <map>
 #include <cmath>
 #include <iostream>
 #include <stdio.h>
@@ -43,6 +44,10 @@ class Shape {
     // the color of each shape vertex, and the number of colors
     vector<float> colors;
     GLuint numColors;
+
+    // the uv coordinates of the object's texture, plus the total number
+    vector<float> uvtextures;
+    GLuint numTextures;
 
     // the normals each shape vertex, and the number of normals
     vector<float> normals;
@@ -433,6 +438,8 @@ public:
     void makeSphere ( int subDiv, int normalType );
 
     void fromObj ( char* filename );
+
+    void fromObj2 ( char* filename );
 };
 
 #endif

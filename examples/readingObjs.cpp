@@ -59,6 +59,7 @@ void createShape() {
     // SHAPE 
     //
     shape.clearShape();
+    //shape.fromObj2( "objects/textureCube.obj" ); 
     shape.fromObj( "objects/teapot.obj" ); 
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
