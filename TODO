@@ -1,8 +1,0 @@
--> Add the obj reading stuff in the readme
--> Add texture, SOIL stuff in the readme
-
--> Improve obj reader (needs to read textures, normals, faces in a different pattern).
--> Add one for vertices and normals only
--> Generate normals for the one that only reads vertices
-------> test it
-------> test it more
