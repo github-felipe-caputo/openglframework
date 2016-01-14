@@ -50,23 +50,24 @@ float zVec[] = {0,0,1};
 bool animatingX = false;
 bool animatingY = false;
 bool animatingZ = false;
-float xtheta = 0.0f;
-float ytheta = 0.0f;
-float ztheta = 0.0f;
+float xtheta = 30.0f;
+float ytheta = 30.0f;
+float ztheta = 30.0f;
 
 void createShape() {
     //
     // SHAPE 
     //
     shape.clearShape();
-    shape.fromObj( "objects/teapot.obj" ); 
+    shape.fromObj2( "objects/textureCube.obj" , "objects/textureCube.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
+    int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
     int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/simpleVert.glsl", 
-                                         "shaders/simpleFrag.glsl" );
+    program = shader::makeShaderProgram( "shaders/simpleTextureVert.glsl", 
+                                         "shaders/simpleTextureFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -77,9 +78,10 @@ void createShape() {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // This example, just vertex data
-    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize, NULL, GL_STATIC_DRAW );
+    // This example, vertex data and texture coordinates
+    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + uvShapeDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, uvShapeDataSize, shape.getUV() );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -108,6 +110,7 @@ void createShape() {
 
     // Setting up vertex array object
     GLuint vPosition;
+    GLuint vTexCoords;
 
     glGenVertexArrays(1, &vaoShape);
 
@@ -119,7 +122,14 @@ void createShape() {
     glEnableVertexAttribArray( vPosition );
     glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
+    vTexCoords = glGetAttribLocation( program , "vTexCoord" );
+    glEnableVertexAttribArray( vTexCoords );
+    glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
+
+    // set up textures
+    shape.setUpTexture( program, "vTexCoord" );
+
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );   
 }
 
 void init () {
@@ -131,7 +141,6 @@ void init () {
     glEnable( GL_CULL_FACE );
     glCullFace( GL_BACK );
     glClearColor( 0.0, 0.0, 0.0, 1.0 );
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // This shows just the lines
 }
 
 void display () {
@@ -139,7 +148,7 @@ void display () {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Set up the transforms
-    Matrix mTransform = translate(0,0,-3) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    Matrix mTransform = translate(0,0,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
@@ -152,7 +161,7 @@ void display () {
     Matrix mProjMatrix = cam.getProjMatrix();
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
-    
+
 
     //
     // Binding the shape, transforms, etc

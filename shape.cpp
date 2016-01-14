@@ -363,6 +363,14 @@ GLuint Shape::getNumColors() {
     return numColors;
 }
 
+float* Shape::getUV() {
+    return &uvtextures[0];
+}
+
+GLuint Shape::getNumUV() {
+    return numTextures;
+}
+
 /* 
  * getNormals
  *
@@ -896,7 +904,7 @@ void Shape::fromObj ( char* filename ) {
     numElements = elements.size();
 }
 
-void Shape::fromObj2 ( char* filename ) {
+void Shape::fromObj2 ( char* filename , char* filetexture ) {
     std::ifstream ifs(filename, std::ifstream::in);
     std::string line, firstWord, aux, aux2;
     float values[3];
@@ -924,6 +932,9 @@ void Shape::fromObj2 ( char* filename ) {
                 ss >> values[0] >> values[1];
                 in_uvtextures.push_back(values[0]);
                 in_uvtextures.push_back(values[1]);
+
+                //cout << values[0] << " / " <<  values[1] << endl;
+
             } // normals 
             else if (!firstWord.compare("vn")) {
                 ss >> values[0] >> values[1] >> values[2];
@@ -961,7 +972,7 @@ void Shape::fromObj2 ( char* filename ) {
         if(facesValues.find(auxVec) == facesValues.end()){
             // lets put the values on the actual vectors we will output
             int vectorIndex = in_elements[i]*3;
-            int textureIndex = in_elements[i+1]*3;
+            int textureIndex = in_elements[i+1]*2;
             int normalIndex = in_elements[i+2]*3;
 
             vertices.push_back(in_vertices[vectorIndex]);
@@ -988,4 +999,31 @@ void Shape::fromObj2 ( char* filename ) {
     numTextures = uvtextures.size()/2;
     numNormals = normals.size()/3;
     numElements = elements.size();
+
+    // Now, reading the texture using SOIL directly as a new OpenGL texture
+    textureID = SOIL_load_OGL_texture
+            (
+                filetexture,
+                SOIL_LOAD_AUTO,
+                SOIL_CREATE_NEW_ID,
+                SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y
+            );
+    
+    // check for an error during the load process
+    if( 0 == textureID ) {
+        printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
+    } 
+}
+
+void Shape::setUpTexture (GLuint program, char* textureShaderAttribute) {
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    GLuint textID = glGetUniformLocation(program, textureShaderAttribute);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(textID, 0);
 }

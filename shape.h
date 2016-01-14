@@ -13,6 +13,7 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/gl.h>
+#include <SOIL/SOIL.h>
 
 #include <vector>
 #include <map>
@@ -48,6 +49,7 @@ class Shape {
     // the uv coordinates of the object's texture, plus the total number
     vector<float> uvtextures;
     GLuint numTextures;
+    GLuint textureID;
 
     // the normals each shape vertex, and the number of normals
     vector<float> normals;
@@ -245,6 +247,10 @@ public:
      */
     GLuint getNumColors();
 
+    float* getUV();
+
+    GLuint getNumUV();
+
     /* 
      * getNormals
      *
@@ -439,7 +445,9 @@ public:
 
     void fromObj ( char* filename );
 
-    void fromObj2 ( char* filename );
+    void fromObj2 ( char* filename, char* filetexture );
+
+    void setUpTexture ( GLuint program, char* textureShaderAttribute ) ;
 };
 
 #endif

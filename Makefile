@@ -1,6 +1,6 @@
 CXX = 			g++
 CXXFLAGS = 		#-Wall
-LDLIBS =		-lglut -lGLEW -lGL
+LDLIBS =		-lglut -lGLEW -lGL -lSOIL
 
 CPP_FILES = main.cpp shader.cpp shape.cpp mathHelper.cpp camera.cpp lighting.cpp
 OBJFILES = main.o shader.o shape.o mathHelper.o camera.o lighting.o
