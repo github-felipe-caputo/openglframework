@@ -363,10 +363,24 @@ GLuint Shape::getNumColors() {
     return numColors;
 }
 
+/* 
+ * getUV
+ *
+ * RETURN:
+ *         The vector/array of the texture coordinates.
+ *
+ */
 float* Shape::getUV() {
     return &uvtextures[0];
 }
 
+/* 
+ * getNumUV
+ *
+ * RETURN:
+ *         The number of the texture coordinates.
+ *
+ */
 GLuint Shape::getNumUV() {
     return numTextures;
 }
@@ -868,7 +882,19 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     }
 }      
 
-void Shape::fromObj ( char* filename ) {
+/* 
+ * readObjVert
+ *
+ * INPUT: 
+ *         filename - the .obj file you want to load
+ *
+ * DESCRIPTION:
+ *         This function reads an .obj file and creates the geometry for the
+ *         object it describes. In particular this function will only work
+ *         for .objs that have only vertex and face data of order 3.
+ *
+ */
+void Shape::readObjVert ( char* filename ) {
     std::ifstream ifs(filename, std::ifstream::in);
     std::string line, firstWord;
     float values[3];
@@ -883,12 +909,7 @@ void Shape::fromObj ( char* filename ) {
                 vertices.push_back(values[0]);
                 vertices.push_back(values[1]);
                 vertices.push_back(values[2]);
-            } // normals 
-            else if (!firstWord.compare("vn")) {
-                normals.push_back(values[0]);
-                normals.push_back(values[1]);
-                normals.push_back(values[2]);
-            } // faces
+            }  // faces
             else if (!firstWord.compare("f")) {
                 // Wavefront .obj files start counting from 1
                 elements.push_back((int) values[0]-1);
@@ -900,11 +921,128 @@ void Shape::fromObj ( char* filename ) {
     }
 
     numVertices = vertices.size()/3;
+    numElements = elements.size();
+}
+
+/* 
+ * readObjVertNorm
+ *
+ * INPUT: 
+ *         filename - the .obj file you want to load
+ *
+ * DESCRIPTION:
+ *         This function reads an .obj file and creates the geometry for the
+ *         object it describes. In particular this function will only work
+ *         for .objs that have vertex, normals and face data of order 3 with
+ *         the pattern "number//number"
+ *
+ */
+void Shape::readObjVertNorm ( char* filename ) {
+    std::ifstream ifs(filename, std::ifstream::in);
+    std::string line, firstWord, aux, aux2;;
+    float values[3];
+
+    // aux values
+    vector<float> in_vertices;
+    vector<float> in_uvtextures;
+    vector<float> in_normals;
+    vector<float> in_elements;
+
+    while(std::getline(ifs, line)) {
+        if(!line.empty()) {
+            std::istringstream ss(line);
+            ss >> firstWord;// >> values[0] >> values[1] >> values[2];
+
+            // vertices
+            if (!firstWord.compare("v")) {
+                ss >> values[0] >> values[1] >> values[2];
+                in_vertices.push_back(values[0]);
+                in_vertices.push_back(values[1]);
+                in_vertices.push_back(values[2]);
+            } // textures
+            else if (!firstWord.compare("vt")) {
+                ss >> values[0] >> values[1];
+                in_uvtextures.push_back(values[0]);
+                in_uvtextures.push_back(values[1]);
+            } // normals 
+            else if (!firstWord.compare("vn")) {
+                ss >> values[0] >> values[1] >> values[2];
+                in_normals.push_back(values[0]);
+                in_normals.push_back(values[1]);
+                in_normals.push_back(values[2]);
+            } // faces
+            else if (!firstWord.compare("f")) { 
+                while(ss >> aux) { // aux is like "1//3"
+                    std::istringstream ss2(aux);
+                    while(std::getline(ss2, aux2, '/')) {
+                        if(!aux2.empty()) {
+                            in_elements.push_back( atoi(aux2.c_str()) - 1); // Wavefront .obj files start counting from 1
+                        }
+                    }
+                }
+            }
+        }   
+        firstWord.clear();
+    }
+
+    // Filling the index the correct way, we make a map of the faces. IF we see "1/2/3" for the
+    // first time we add on the final "elements" vector, if we see it again we check on this
+    // map what is the index of it, then we add the same index on "elements" again
+    std::map<vector<int>,int> facesValues;
+    int index = 0;
+
+    // we will see each input vertex, so we will for every 3 values on our in_vertices vector
+    for(int i = 0; i < in_elements.size(); i+=2) {
+        vector<int> auxVec;
+        auxVec.push_back(in_elements[i]);
+        auxVec.push_back(in_elements[i+1]);
+
+        // if "1//3" is not on the map
+        if(facesValues.find(auxVec) == facesValues.end()){
+            // lets put the values on the actual vectors we will output
+            int vectorIndex = in_elements[i]*3;
+            int normalIndex = in_elements[i+1]*3;
+
+            vertices.push_back(in_vertices[vectorIndex]);
+            vertices.push_back(in_vertices[vectorIndex+1]);
+            vertices.push_back(in_vertices[vectorIndex+2]);
+
+            normals.push_back(in_normals[normalIndex]);
+            normals.push_back(in_normals[normalIndex+1]);
+            normals.push_back(in_normals[normalIndex+2]);
+
+            index = (vertices.size()/3) - 1;
+            elements.push_back(index);
+            facesValues.insert( std::pair<vector<int>,int> (auxVec,index) );
+        } // if it is on the map, just add it again
+        else {
+            elements.push_back(facesValues.find(auxVec)->second);
+        }
+    }
+
+    numVertices = vertices.size()/3;
     numNormals = normals.size()/3;
     numElements = elements.size();
 }
 
-void Shape::fromObj2 ( char* filename , char* filetexture ) {
+/* 
+ * readObjVertNorm
+ *
+ * INPUT: 
+ *         filename - the .obj file you want to load
+ *         filetexture - the texture file, can be of any extension readable 
+ *                       by SOIL
+ *
+ * DESCRIPTION:
+ *         This function reads an .obj file and creates the geometry for the
+ *         object it describes. In particular this function will only work
+ *         for .objs that have vertex, texture, normals and face data of 
+ *         order 3 with the pattern "number/number/number"
+ *
+ *         Note: Uses SOIL to load images: http://www.lonesock.net/soil.html
+ *
+ */
+void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     std::ifstream ifs(filename, std::ifstream::in);
     std::string line, firstWord, aux, aux2;
     float values[3];
@@ -932,9 +1070,6 @@ void Shape::fromObj2 ( char* filename , char* filetexture ) {
                 ss >> values[0] >> values[1];
                 in_uvtextures.push_back(values[0]);
                 in_uvtextures.push_back(values[1]);
-
-                //cout << values[0] << " / " <<  values[1] << endl;
-
             } // normals 
             else if (!firstWord.compare("vn")) {
                 ss >> values[0] >> values[1] >> values[2];
@@ -949,8 +1084,7 @@ void Shape::fromObj2 ( char* filename , char* filetexture ) {
                         in_elements.push_back( atoi(aux2.c_str()) - 1); // Wavefront .obj files start counting from 1
                     }
                 }
-            }
-            
+            }  
         }
         firstWord.clear();
     }
@@ -1015,6 +1149,19 @@ void Shape::fromObj2 ( char* filename , char* filetexture ) {
     } 
 }
 
+/* 
+ * setUpTexture
+ *
+ * INPUT: 
+ *         program - the program ID of the shaders being used.
+ *         textureShaderAttribute - the name of the variable "sampler2D" on
+ *                                  the shader.
+ *
+ * DESCRIPTION:
+ *         This function will bind the texture, setup the variables to 
+ *         display it and will activate it.
+ *
+ */
 void Shape::setUpTexture (GLuint program, char* textureShaderAttribute) {
     glBindTexture(GL_TEXTURE_2D, textureID);
 

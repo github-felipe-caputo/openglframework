@@ -102,7 +102,7 @@ void createShapes(int normalType, int shaders, int materials) {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // DThis example, just vertex data
+    // This example, just vertex data
     glBufferData( GL_ARRAY_BUFFER, vShapeDataSize+nShapeDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );

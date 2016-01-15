@@ -3,6 +3,7 @@ As the name implies, this is a (C++) framework for interaction with OpenGL 3.1+.
 
 - A Vertex and Fragment shader "reader".
 - A Shape creator with a few primitives such as cube, cylinder and sphere.
+- An .obj loader, for vertices, textures and normals.
 - Some simple transformations (translation, rotation, scaling).
 - Phong Illumination implementation.
 - Camera manipulation.
@@ -13,6 +14,7 @@ To compile the code you will need
 - [GLEW](http://glew.sourceforge.net/) - Determining which OpenGL extensions are supported.
 - [freeglut](http://freeglut.sourceforge.net/) - Takes care of all the system-specific chores required for creating windows
 - [Matrix TCL Pro](http://www.techsoftpl.com/matrix/) - A generic C++ template class library for performing matrix algebra calculations.
+- [Simple OpenGL Image Library](http://www.lonesock.net/soil.html) - A library to load images in OpenGL.
 
 A `Makefile` is available on the repo as an example.
 
@@ -85,6 +87,7 @@ Thre examples of how to use the framework can be seen on the `examples` folder:
 - `shapeSubDiv.cpp`: shows different shapes with different mesh subdivisions.
 - `phongLightModel.cpp`: shows flat, gouraud and phong lighting on a sphere.
 - `shapesAndLight.cpp`: shows 4 shapes being affected by lighting at the same time.
+- `readingObjs.cpp`, `readingObjVertNorm.cpp`, `readingObjVertTexNorm.cpp`: shows how to load objects from .obj files.
 
 ## More
 Check [http://fvcaputo.github.io/](http://fvcaputo.github.io/).

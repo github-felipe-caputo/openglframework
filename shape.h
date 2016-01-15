@@ -247,8 +247,22 @@ public:
      */
     GLuint getNumColors();
 
+    /* 
+     * getUV
+     *
+     * RETURN:
+     *         The vector/array of the texture coordinates.
+     *
+     */
     float* getUV();
 
+    /* 
+     * getNumUV
+     *
+     * RETURN:
+     *         The number of the texture coordinates.
+     *
+     */
     GLuint getNumUV();
 
     /* 
@@ -443,10 +457,67 @@ public:
      */
     void makeSphere ( int subDiv, int normalType );
 
-    void fromObj ( char* filename );
+    /* 
+     * readObjVert
+     *
+     * INPUT: 
+     *         filename - the .obj file you want to load
+     *
+     * DESCRIPTION:
+     *         This function reads an .obj file and creates the geometry for the
+     *         object it describes. In particular this function will only work
+     *         for .objs that have only vertex and face data of order 3.
+     *
+     */
+    void readObjVert ( char* filename );
 
-    void fromObj2 ( char* filename, char* filetexture );
+    /* 
+     * readObjVertNorm
+     *
+     * INPUT: 
+     *         filename - the .obj file you want to load
+     *
+     * DESCRIPTION:
+     *         This function reads an .obj file and creates the geometry for the
+     *         object it describes. In particular this function will only work
+     *         for .objs that have vertex, normals and face data of order 3 with
+     *         the pattern "number//number"
+     *
+     */
+    void readObjVertNorm ( char* filename );
 
+    /* 
+     * readObjVertNorm
+     *
+     * INPUT: 
+     *         filename - the .obj file you want to load
+     *         filetexture - the texture file, can be of any extension readable 
+     *                       by SOIL
+     *
+     * DESCRIPTION:
+     *         This function reads an .obj file and creates the geometry for the
+     *         object it describes. In particular this function will only work
+     *         for .objs that have vertex, texture, normals and face data of 
+     *         order 3 with the pattern "number/number/number"
+     *
+     *         Note: Uses SOIL to load images: http://www.lonesock.net/soil.html
+     *
+     */
+    void readObjVertTexNorm ( char* filename, char* filetexture );
+
+    /* 
+     * setUpTexture
+     *
+     * INPUT: 
+     *         program - the program ID of the shaders being used.
+     *         textureShaderAttribute - the name of the variable "sampler2D" on
+     *                                  the shader.
+     *
+     * DESCRIPTION:
+     *         This function will bind the texture, setup the variables to 
+     *         display it and will activate it.
+     *
+     */
     void setUpTexture ( GLuint program, char* textureShaderAttribute ) ;
 };
 

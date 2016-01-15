@@ -50,24 +50,29 @@ float zVec[] = {0,0,1};
 bool animatingX = false;
 bool animatingY = false;
 bool animatingZ = false;
-float xtheta = 30.0f;
-float ytheta = 30.0f;
-float ztheta = 30.0f;
+float xtheta = 0.0f;
+float ytheta = 0.0f;
+float ztheta = 0.0f;
 
 void createShape() {
     //
     // SHAPE 
     //
     shape.clearShape();
-    shape.fromObj2( "objects/textureCube.obj" , "objects/textureCube.png" );
+    shape.readObjVertNorm( "objects/teapotNormals.obj" ); 
+
+    // set materials
+    shape.setMaterials(0.1f, 0.5f, 0.9f, 0.5f, 
+                       0.0f, 0.0f, 0.5f, 0.9f, 
+                       1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
-    int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
+    int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
     int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/simpleTextureVert.glsl", 
-                                         "shaders/simpleTextureFrag.glsl" );
+    program = shader::makeShaderProgram( "shaders/flatLightingVert.glsl", 
+                                         "shaders/flatLightingFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -78,10 +83,10 @@ void createShape() {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // This example, vertex data and texture coordinates
-    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + uvShapeDataSize, NULL, GL_STATIC_DRAW );
+    // This example, vertex  and normals
+    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize+nShapeDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, uvShapeDataSize, shape.getUV() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -110,7 +115,7 @@ void createShape() {
 
     // Setting up vertex array object
     GLuint vPosition;
-    GLuint vTexCoords;
+    GLuint vNormal;
 
     glGenVertexArrays(1, &vaoShape);
 
@@ -122,14 +127,11 @@ void createShape() {
     glEnableVertexAttribArray( vPosition );
     glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 
-    vTexCoords = glGetAttribLocation( program , "vTexCoord" );
-    glEnableVertexAttribArray( vTexCoords );
-    glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
+    vNormal = glGetAttribLocation( program, "vNormal" );
+    glEnableVertexAttribArray( vNormal );
+    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
 
-    // set up textures
-    shape.setUpTexture( program, "vTexCoord" );
-
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );   
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 }
 
 void init () {
@@ -148,7 +150,7 @@ void display () {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Set up the transforms
-    Matrix mTransform = translate(0,0,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    Matrix mTransform = translate(0,0,-3) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
@@ -162,11 +164,21 @@ void display () {
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
 
+    //
+    // Illumination BLOW UP
+    //
+    Lighting light(2.0f, 2.0f, 0.0f,
+                   1.0f, 1.0f,  1.0f,
+                   0.5f, 0.5f,  0.5f);
+    
 
     //
     // Binding the shape, transforms, etc
     //
     glBindVertexArray(vaoShape);
+
+    // light
+    light.setPhongIllumination(program, shape);
 
     // Drawing elements
     glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
