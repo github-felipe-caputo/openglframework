@@ -450,6 +450,10 @@ void Shape::setMaterials(float newAmbientMaterial[], float newKa,
                          float newDiffuseMaterial[], float newKd,
                          float newSpecularMaterial[], float newKs, float newSpecExp) {
 
+    ambientMaterial.clear();
+    diffuseMaterial.clear();
+    specularMaterial.clear();
+
     for (int i = 0; i < 3; ++i) {
         ambientMaterial.push_back(newAmbientMaterial[i]);
         diffuseMaterial.push_back(newDiffuseMaterial[i]);
@@ -484,6 +488,10 @@ void Shape::setMaterials(float newAmbientMaterial[], float newKa,
 void Shape::setMaterials(float ambientR, float ambientG, float ambientB, float newKa,
                          float diffuseR, float diffuseG, float diffuseB, float newKd,
                          float specularR, float specularG, float specularB, float newKs, float newSpecExp) {
+
+    ambientMaterial.clear();
+    diffuseMaterial.clear();
+    specularMaterial.clear();
 
     ambientMaterial.push_back(ambientR);
     ambientMaterial.push_back(ambientG);
