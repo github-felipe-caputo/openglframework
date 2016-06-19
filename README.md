@@ -46,7 +46,7 @@ shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
 shape.getVertices(); // return vertices
 ```
 
-# Transformations
+## Transformations
 On `mathHelper.cpp` and `mathHelper.h` you have the source code to generate matrices for translation, rotation and scaling (with help of the Matrix TCL lib).
 
 ```c++
