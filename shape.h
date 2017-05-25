@@ -10,10 +10,14 @@
 #ifndef _SHAPE_H
 #define _SHAPE_H
 
+#ifdef __APPLE__
+#include <OpenGL/gl3.h>
+#include <SOIL.h>
+#else
 #include <GL/glew.h>
-#include <GL/freeglut.h>
 #include <GL/gl.h>
 #include <SOIL/SOIL.h>
+#endif
 
 #include <vector>
 #include <map>
@@ -65,10 +69,10 @@ class Shape {
     vector<float> specularMaterial;
     float Ka, Kd, Ks, specExp;
 
-    /* 
+    /*
      * addTriangle
      *
-     * INPUT: 
+     * INPUT:
      *         xN - the x value of the Nth point of the triangle.
      *         yN - the y value of the Nth point of the triangle.
      *         zN - the z value of the Nth point of the triangle.
@@ -79,7 +83,7 @@ class Shape {
      *         are required to be in counter clockwise order. This function
      *         will also calculate normals for the vertices, however every vertex
      *         of the triangle will have the same normal.
-     *         The variables numVertices, numNormals andnumElements are also 
+     *         The variables numVertices, numNormals andnumElements are also
      *         changed accordingly.
      *
      */
@@ -87,16 +91,16 @@ class Shape {
                      float x1, float y1, float z1,
                      float x2, float y2, float z2);
 
-    /* 
+    /*
      * addTriangle
      *
-     * INPUT: 
+     * INPUT:
      *         v0 - the first vertex of the triangle.
      *         v1 - the second vertex of the triangle.
      *         v2 - the third vertex of the triangle.
      *
      * DESCRIPTION:
-     *         This function works exactly like the previous addTriangle, 
+     *         This function works exactly like the previous addTriangle,
      *         with the exception that instead of using as arguments the x, y,
      *         and z of each vertex, we use three arrays of size 3 that hold
      *         those values. In other words, v0[3] = {x, y, z}.
@@ -104,10 +108,10 @@ class Shape {
      */
     void addTriangle(float v0[], float v1[], float v2[]);
 
-    /* 
+    /*
      * addTriangleAndNormals
      *
-     * INPUT: 
+     * INPUT:
      *         xN - the x value of the Nth point of the triangle.
      *         yN - the y value of the Nth point of the triangle.
      *         zN - the z value of the Nth point of the triangle.
@@ -127,10 +131,10 @@ class Shape {
                                float nx1, float ny1, float nz1,
                                float nx2, float ny2, float nz2);
 
-    /* 
+    /*
      * addTriangleAndNormals
      *
-     * INPUT: 
+     * INPUT:
      *         v0 - the first vertex of the triangle.
      *         v1 - the second vertex of the triangle.
      *         v2 - the third vertex of the triangle.
@@ -139,7 +143,7 @@ class Shape {
      *         n2 - the normal of the third vertex of the triangle.
      *
      * DESCRIPTION:
-     *         This function works exactly like the previous addTriangleAndNormals, 
+     *         This function works exactly like the previous addTriangleAndNormals,
      *         with the exception that instead of using as arguments the x, y,
      *         and z of each vertex, we use three arrays of size 3 that hold
      *         those values. In other words, v0[3] = {x, y, z}.
@@ -148,10 +152,10 @@ class Shape {
     void addTriangleAndNormals(float v0[], float v1[], float v2[],
                                float n0[], float n1[], float n2[]);
 
-    /* 
+    /*
      * addTriangleWithSubdivision
      *
-     * INPUT: 
+     * INPUT:
      *         v0 - the first vertex of the triangle.
      *         v1 - the second vertex of the triangle.
      *         v2 - the third vertex of the triangle.
@@ -160,7 +164,7 @@ class Shape {
      * DESCRIPTION:
      *         This function is used together with the makeSphere function.
      *         It's responsible for subdividing the triangles of the sphere so that
-     *         we get a better result. Essentially the triangle "0, 1, 2" will 
+     *         we get a better result. Essentially the triangle "0, 1, 2" will
      *         become triangles "0,3,5", "3,1,4", "5,4,2" and "3,4,5".
      *
      *                      0
@@ -169,9 +173,9 @@ class Shape {
      *
      *         It's a recursive function so it can keep sub dividing the triangles.
      *         This function will also be different depending on the type of
-     *         normals. If you want the FLAT normals, then for each triangles, 
+     *         normals. If you want the FLAT normals, then for each triangles,
      *         the vertices will have the same normals. If you want the SMOOTH normals
-     *         then another function will be called where we tell it what 
+     *         then another function will be called where we tell it what
      *         are the normals, in the case of the sphere you can consider the normals
      *         of the points as the same as the points (they are vertices coming from
      *         the origin).
@@ -179,11 +183,11 @@ class Shape {
      */
     void addTriangleWithSubdivision(float v0[], float v1[], float v2[], int subDiv, int normalType);
 
-    
+
 
 public:
-    
-    /* 
+
+    /*
      * Shape
      *
      * DESCRIPTION:
@@ -193,7 +197,7 @@ public:
      */
     Shape ();
 
-    /* 
+    /*
      * ~Shape
      *
      * DESCRIPTION:
@@ -202,7 +206,7 @@ public:
      */
     ~Shape ();
 
-    /* 
+    /*
      * clearShape
      *
      * DESCRIPTION:
@@ -211,7 +215,7 @@ public:
      */
     void clearShape ();
 
-    /* 
+    /*
      * getVertices
      *
      * RETURN:
@@ -220,7 +224,7 @@ public:
      */
     float* getVertices();
 
-    /* 
+    /*
      * getNumVertices
      *
      * RETURN:
@@ -229,7 +233,7 @@ public:
      */
     GLuint getNumVertices();
 
-    /* 
+    /*
      * getColors
      *
      * RETURN:
@@ -238,7 +242,7 @@ public:
      */
     float* getColors();
 
-    /* 
+    /*
      * getNumColors
      *
      * RETURN:
@@ -247,7 +251,7 @@ public:
      */
     GLuint getNumColors();
 
-    /* 
+    /*
      * getUV
      *
      * RETURN:
@@ -256,7 +260,7 @@ public:
      */
     float* getUV();
 
-    /* 
+    /*
      * getNumUV
      *
      * RETURN:
@@ -265,7 +269,7 @@ public:
      */
     GLuint getNumUV();
 
-    /* 
+    /*
      * getNormals
      *
      * RETURN:
@@ -274,7 +278,7 @@ public:
      */
     float* getNormals();
 
-    /* 
+    /*
      * getNumNormals
      *
      * RETURN:
@@ -283,7 +287,7 @@ public:
      */
     GLuint getNumNormals();
 
-    /* 
+    /*
      * getElements
      *
      * RETURN:
@@ -292,7 +296,7 @@ public:
      */
     GLshort* getElements();
 
-    /* 
+    /*
      * getNumElements
      *
      * RETURN:
@@ -301,10 +305,10 @@ public:
      */
     GLuint getNumElements();
 
-    /* 
+    /*
      * setMaterials
      *
-     * INPUT: 
+     * INPUT:
      *         newAmbientMaterial - RGB values for the ambient material.
      *         newKa - ambient coefficient.
      *         newDiffuseMaterial - RGB values for the diffuse material.
@@ -322,10 +326,10 @@ public:
                       float newDiffuseMaterial[], float newKd,
                       float newSpecularMaterial[], float newKs, float newSpecExp);
 
-    /* 
+    /*
      * setMaterials
      *
-     * INPUT: 
+     * INPUT:
      *         ambientX - RGB values for the ambient material.
      *         newKa - ambient coefficient.
      *         diffuseX - RGB values for the diffuse material.
@@ -345,7 +349,7 @@ public:
                       float diffuseR, float diffuseG, float diffuseB, float newKd,
                       float specularR, float specularG, float specularB, float newKs, float newSpecExp);
 
-    /* 
+    /*
      * getAmbientMaterial
      *
      * RETURN:
@@ -354,7 +358,7 @@ public:
      */
     float* getAmbientMaterial();
 
-    /* 
+    /*
      * getDiffuseMaterial
      *
      * RETURN:
@@ -363,7 +367,7 @@ public:
      */
     float* getDiffuseMaterial();
 
-    /* 
+    /*
      * getSpecularMaterial
      *
      * RETURN:
@@ -372,7 +376,7 @@ public:
      */
     float* getSpecularMaterial();
 
-    /* 
+    /*
      * getKa
      *
      * RETURN:
@@ -381,7 +385,7 @@ public:
      */
     float getKa();
 
-    /* 
+    /*
      * getKd
      *
      * RETURN:
@@ -390,7 +394,7 @@ public:
      */
     float getKd();
 
-    /* 
+    /*
      * getKs
      *
      * RETURN:
@@ -399,7 +403,7 @@ public:
      */
     float getKs();
 
-    /* 
+    /*
      * getSpecExp
      *
      * RETURN:
@@ -408,24 +412,24 @@ public:
      */
     float getSpecExp();
 
-    /* 
+    /*
      * makeCube
      *
-     * INPUT: 
+     * INPUT:
      *         subDiv - number of subdivisions for the squares.
      *
      * DESCRIPTION:
      *         Creates a simple cube centered at the origin, with each
-     *         side of total length 1, and squares with certain 
+     *         side of total length 1, and squares with certain
      *         sub divisions.
      *
      */
     void makeCube (int subDiv);
 
-    /* 
+    /*
      * makeSphere
      *
-     * INPUT: 
+     * INPUT:
      *         subDivBase - number of subdivisions on the bases.
      *         subDivHeight - number of subdivisions on height.
      *         normalType - this is the type of normal the sphere can have.
@@ -438,10 +442,10 @@ public:
      */
     void makeCylinder ( int subDivBase, int subDivHeight, int normalType );
 
-    /* 
+    /*
      * makeSphere
      *
-     * INPUT: 
+     * INPUT:
      *         subDiv - number of subdivisions for the triangles.
      *         normalType - this is the type of normal the sphere can have.
      *
@@ -450,17 +454,17 @@ public:
      *         subdivision. It can also have two types of normals, FLAT or
      *         SMOOTH.
      *
-     *         Reference: 
-     *         Hoffmann, Gernot. Sphere Tesselation by Icosahedron Subdivision. 
+     *         Reference:
+     *         Hoffmann, Gernot. Sphere Tesselation by Icosahedron Subdivision.
      *         http://docs-hoffmann.de/ikos27042002.pdf
      *
      */
     void makeSphere ( int subDiv, int normalType );
 
-    /* 
+    /*
      * readObjVert
      *
-     * INPUT: 
+     * INPUT:
      *         filename - the .obj file you want to load
      *
      * DESCRIPTION:
@@ -471,10 +475,10 @@ public:
      */
     void readObjVert ( char* filename );
 
-    /* 
+    /*
      * readObjVertNorm
      *
-     * INPUT: 
+     * INPUT:
      *         filename - the .obj file you want to load
      *
      * DESCRIPTION:
@@ -486,18 +490,18 @@ public:
      */
     void readObjVertNorm ( char* filename );
 
-    /* 
+    /*
      * readObjVertNorm
      *
-     * INPUT: 
+     * INPUT:
      *         filename - the .obj file you want to load
-     *         filetexture - the texture file, can be of any extension readable 
+     *         filetexture - the texture file, can be of any extension readable
      *                       by SOIL
      *
      * DESCRIPTION:
      *         This function reads an .obj file and creates the geometry for the
      *         object it describes. In particular this function will only work
-     *         for .objs that have vertex, texture, normals and face data of 
+     *         for .objs that have vertex, texture, normals and face data of
      *         order 3 with the pattern "number/number/number"
      *
      *         Note: Uses SOIL to load images: http://www.lonesock.net/soil.html
@@ -505,16 +509,16 @@ public:
      */
     void readObjVertTexNorm ( char* filename, char* filetexture );
 
-    /* 
+    /*
      * setUpTexture
      *
-     * INPUT: 
+     * INPUT:
      *         program - the program ID of the shaders being used.
      *         textureShaderAttribute - the name of the variable "sampler2D" on
      *                                  the shader.
      *
      * DESCRIPTION:
-     *         This function will bind the texture, setup the variables to 
+     *         This function will bind the texture, setup the variables to
      *         display it and will activate it.
      *
      */

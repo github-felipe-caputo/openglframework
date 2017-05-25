@@ -1,8 +1,13 @@
 
 // OpenGL stuff
+#ifdef __APPLE__
+#include <GLUT/GLUT.h>
+#include <OpenGL/gl3.h>
+#else
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/gl.h>
+#endif
 
 // C libraries
 #include <iostream>
@@ -12,7 +17,7 @@
 #include "mathHelper.h"
 
 // Classes
-#include "shape.h"      
+#include "shape.h"
 #include "camera.h"
 #include "lighting.h"
 
@@ -56,7 +61,7 @@ float ztheta = 30.0f;
 
 void createShape() {
     //
-    // SHAPE 
+    // SHAPE
     //
     shape.clearShape();
     shape.readObjVertTexNorm( "objects/textureCube.obj" , "objects/textureCube.png" );
@@ -66,7 +71,7 @@ void createShape() {
     int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/simpleTextureVert.glsl", 
+    program = shader::makeShaderProgram( "shaders/simpleTextureVert.glsl",
                                          "shaders/simpleTextureFrag.glsl" );
 
     //
@@ -129,7 +134,7 @@ void createShape() {
     // set up textures
     shape.setUpTexture( program, "vTexCoord" );
 
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );   
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 }
 
 void init () {
@@ -144,7 +149,7 @@ void init () {
 }
 
 void display () {
-    // clear 
+    // clear
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Set up the transforms
@@ -179,32 +184,32 @@ void display () {
 void keyboard( unsigned char key, int x, int y ) {
     switch( key ) {
         // Camera
-        case 'w':                      
+        case 'w':
             cam.moveForward();
             break;
-        case 's':                      
+        case 's':
             cam.moveBackward();
             break;
-        case 'd':                      
+        case 'd':
             cam.strafeRight();
             break;
-        case 'a':                      
+        case 'a':
             cam.strafeLeft();
             break;
-        case 'r':                      
+        case 'r':
             cam.moveUp();
             break;
-        case 'f':                      
+        case 'f':
             cam.moveDown();
             break;
         // Animation
-        case 'j':                      
+        case 'j':
             animatingX = !animatingX;
             break;
-        case 'k':                      
+        case 'k':
             animatingY = !animatingY;
             break;
-        case 'l':                      
+        case 'l':
             animatingZ = !animatingZ;
             break;
         case 033: case 'q': case 'Q':  // terminate the program
@@ -244,11 +249,11 @@ void mouseMovementEvent( int x, int y ) {
 
 
 int main ( int argc, char **argv ) {
-    // initialize glut 
+    // initialize glut
     glutInit(&argc, argv);
 
     // memory buffers
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
     //set window size
     glutInitWindowSize(512, 512);
@@ -256,12 +261,16 @@ int main ( int argc, char **argv ) {
     // window
     glutCreateWindow( "OpenGL Framework" );
 
+    #ifndef __APPLE__
     // Try to initalize glew to use gl apis
     GLenum err = glewInit();
     if (GLEW_OK != err) {
         fprintf(stderr, "GLEW error");
         return 1;
     }
+    #endif
+
+    std::printf("%s\n%s\n", glGetString(GL_RENDERER),  glGetString(GL_VERSION));
 
     init();
 

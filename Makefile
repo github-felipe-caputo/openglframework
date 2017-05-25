@@ -1,30 +1,31 @@
 CXX = 			g++
-CXXFLAGS = 		#-Wall
-LDLIBS =		-lglut -lGLEW -lGL -lSOIL
+CXXFLAGS = 		-I/usr/local/include -O2
+LDFLAGS =		-L/usr/local/lib
+LDLIBS =		-lGLEW -lSOIL -framework OpenGL -framework GLUT 
 
 CPP_FILES = main.cpp shader.cpp shape.cpp mathHelper.cpp camera.cpp lighting.cpp
 OBJFILES = main.o shader.o shape.o mathHelper.o camera.o lighting.o
 
 main: $(OBJFILES)
-	$(CXX) $(CXXFLAGS) -o main $(OBJFILES) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -o main $(OBJFILES) $(LDFLAGS) $(LDLIBS)
 
 main.o: main.cpp
-	$(CXX) $(CXXFLAGS) -c main.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c main.cpp $(LDFLAGS) $(LDLIBS)
 
 shader.o: shader.cpp
-	$(CXX) $(CXXFLAGS) -c shader.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c shader.cpp $(LDFLAGS) $(LDLIBS)
 
 shape.o: shape.cpp
-	$(CXX) $(CXXFLAGS) -c shape.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c shape.cpp $(LDFLAGS) $(LDLIBS)
 
 mathHelper.o: mathHelper.cpp
-	$(CXX) $(CXXFLAGS) -c mathHelper.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c mathHelper.cpp $(LDFLAGS) $(LDLIBS)
 
 camera.o: camera.cpp
-	$(CXX) $(CXXFLAGS) -c camera.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c camera.cpp $(LDFLAGS) $(LDLIBS)
 
 lighting.o: lighting.cpp
-	$(CXX) $(CXXFLAGS) -c lighting.cpp $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -c lighting.cpp  $(LDFLAGS) $(LDLIBS)
 
 # Dependencies
 

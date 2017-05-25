@@ -1,4 +1,4 @@
-#version 130
+#version 410
 
 // Shape values
 in vec3 vPosition;
@@ -14,7 +14,7 @@ uniform vec4 lightPos;
 uniform vec4 ambient;
 uniform vec4 diffuse;
 uniform vec4 specular;
-uniform float specExp; 
+uniform float specExp;
 
 // Out values to the fragment shader
 out vec4 color;
@@ -34,7 +34,7 @@ void main () {
     mat3 normalMatrix = mat3(transpose(inverse(modelView)));
 
     // vertex position in camera coord
-    vec4 posEyeCoord = modelView * vec4(vPosition, 1.0); 
+    vec4 posEyeCoord = modelView * vec4(vPosition, 1.0);
 
     // light position in camera coord
     // but no transformation (it's not moving like the objects)
@@ -48,7 +48,7 @@ void main () {
     vec4 ambientColor = ambient;
     vec4 diffuseColor = diffuse * max(dot(N, L), 0.0);
     vec4 specularColor = specular * pow(max(dot(R, V),0.0),specExp);
-    if(dot(L, N) < 0.0) 
+    if(dot(L, N) < 0.0)
         specularColor = vec4(0.0,0.0,0.0,1.0);
 
     color = ambientColor + diffuseColor + specularColor;
