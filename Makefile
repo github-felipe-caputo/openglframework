@@ -1,7 +1,7 @@
 CXX = 			g++
-CXXFLAGS = 		-I/usr/local/include -O2
+CXXFLAGS = 		-I/usr/local/include -O2 -std=c++11
 LDFLAGS =		-L/usr/local/lib
-LDLIBS =		-lGLEW -lSOIL -framework OpenGL -framework GLUT 
+LDLIBS =		-lGLEW -framework OpenGL -framework GLUT
 
 CPP_FILES = main.cpp shader.cpp shape.cpp mathHelper.cpp camera.cpp lighting.cpp
 OBJFILES = main.o shader.o shape.o mathHelper.o camera.o lighting.o

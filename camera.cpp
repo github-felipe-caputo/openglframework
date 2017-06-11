@@ -9,10 +9,10 @@
 
 #include "camera.h"
 
-/* 
+/*
  * makeViewMatrix
  *
- * INPUT: 
+ * INPUT:
  *         eyePoint - position of the eye/camera.
  *         lookAt - where the camera is looking at.
  *         up - "up" vector of the camera.
@@ -56,10 +56,10 @@ Matrix4 Camera::makeViewMatrix( Vector4 newEyePoint, Vector4 newLookAt, Vector4 
     return worldToCamera;
 }
 
-/* 
+/*
  * makeOrthographicMatrix
  *
- * INPUT: 
+ * INPUT:
  *         l - left limit of the projection volume.
  *         r - right limit of the projection volume.
  *         b - bottom limit of the projection volume.
@@ -82,15 +82,15 @@ Matrix4 Camera::makeOrthographicMatrix ( float l, float r, float b, float t, flo
                                   0.0f, 2.0f/(t-b),        0.0f, -(t+b)/(t-b),
                                   0.0f,       0.0f, -2.0f/(f-n), -(f+n)/(f-n),
                                   0.0f,       0.0f,        0.0f,         1.0f};
-    
+
     Matrix4 ortho(4,4,orthoMatrix4);
-    return ortho;          
+    return ortho;
 }
 
-/* 
+/*
  * makePerspectiveMatrix
  *
- * INPUT: 
+ * INPUT:
  *         fov - the field of view of the whole projection volume.
  *         w - the width of the projection volume.
  *         h - the height limit of the projection volume.
@@ -120,10 +120,10 @@ Matrix4 Camera::makePerspectiveMatrix ( float fov, float w, float h, float zn, f
     return proj;
 }
 
-/* 
+/*
  * makePerspectiveMatrix2
  *
- * INPUT: 
+ * INPUT:
  *         l - left limit of the projection volume.
  *         r - right limit of the projection volume.
  *         b - bottom limit of the projection volume.
@@ -144,25 +144,25 @@ Matrix4 Camera::makePerspectiveMatrix ( float fov, float w, float h, float zn, f
  */
 Matrix4 Camera::makePerspectiveMatrix2 ( float l, float r, float b, float t, float n, float f ) {
     float projMat[] = {(2.0f*n)/(r-l),          0.0f,        (r+l)/(r-l),              0.0f,
-                                 0.0f, (2.0*n)/(t-b),        (t+b)/(t-b),              0.0f,
-                                 0.0f,          0.0f, (-1.0*(f+n))/(f-n), (-2.0f*f*n)/(f-n),
+                                 0.0f, (2.0f*n)/(t-b),        (t+b)/(t-b),              0.0f,
+                                 0.0f,          0.0f, (-1.0f*(f+n))/(f-n), (-2.0f*f*n)/(f-n),
                                  0.0f,          0.0f,              -1.0f,              0.0f};
 
     Matrix4 proj(4,4,projMat);
     return proj;
 }
 
-/* 
+/*
  * Camera
  *
- * INPUT: 
+ * INPUT:
  *         type - the type of the projection.
  *
  * DESCRIPTION:
  *         This is this class constructor. It creates a camera
  *         with some default values (centered at the origin, looking
  *         at the negative z axis, up vector is the world's positive y).
- *         And it also defines a default projection that can be either 
+ *         And it also defines a default projection that can be either
  *         orthographic or prespective
  *
  */
@@ -190,9 +190,9 @@ Camera::Camera ( int type ) {
     } else {
         projMatrix = makeOrthographicMatrix( -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f );
     }
-} 
+}
 
-/* 
+/*
  * ~Camera
  *
  * DESCRIPTION:
@@ -202,14 +202,14 @@ Camera::Camera ( int type ) {
 Camera::~Camera () {
 }
 
-/* 
+/*
  * getViewMatrix
  *
  * RETURN:
  *         The view matrix.
  *
  * DESCRIPTION:
- *         This function simply returns the view matrix of 
+ *         This function simply returns the view matrix of
  *         this camera object.
  *
  */
@@ -217,14 +217,14 @@ Matrix4 Camera::getViewMatrix () {
     return viewMatrix;
 }
 
-/* 
+/*
  * getProjMatrix
  *
  * RETURN:
  *         The projection matrix.
  *
  * DESCRIPTION:
- *         This function simply returns the projection matrix of 
+ *         This function simply returns the projection matrix of
  *         this camera object.
  *
  */
@@ -232,7 +232,7 @@ Matrix4 Camera::getProjMatrix () {
     return projMatrix;
 }
 
-/* 
+/*
  * moveForward
  *
  * DESCRIPTION:
@@ -244,7 +244,7 @@ void Camera::moveForward () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * moveBackward
  *
  * DESCRIPTION:
@@ -256,7 +256,7 @@ void Camera::moveBackward () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * strafeRight
  *
  * DESCRIPTION:
@@ -268,7 +268,7 @@ void Camera::strafeRight () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * strafeLeft
  *
  * DESCRIPTION:
@@ -280,7 +280,7 @@ void Camera::strafeLeft () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * moveUp
  *
  * DESCRIPTION:
@@ -292,7 +292,7 @@ void Camera::moveUp () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * moveDown
  *
  * DESCRIPTION:
@@ -304,10 +304,10 @@ void Camera::moveDown () {
     viewMatrix = makeViewMatrix(eyePoint, eyePoint+lookAt, up);
 }
 
-/* 
+/*
  * setInitialMouseCoord
  *
- * INPUT: 
+ * INPUT:
  *         x - the x coordinate of the mouse click.
  *         y - the y coordinate of the mouse click.
  *
@@ -322,10 +322,10 @@ void Camera::setInitialMouseCoord (int x, int y) {
     mouseOldY = y;
 }
 
-/* 
+/*
  * moveCameraTarget
  *
- * INPUT: 
+ * INPUT:
  *         x - the x coordinate of the current mouse position.
  *         y - the y coordinate of the current mouse position.
  *

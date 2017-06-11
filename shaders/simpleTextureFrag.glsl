@@ -2,9 +2,11 @@
 
 in vec2 uvTexCoord;
 
-uniform sampler2D texture;
+uniform sampler2D textureSampler;
+
+out vec4 fragColor;
 
 void main () {
-    //gl_FragColor = vec4( 0.0, 1.0, 0.0, 1.0 );
-    gl_FragColor = texture2D(texture, uvTexCoord);
+    //fragColor = vec4( 0.0, 1.0, 0.0, 1.0 );
+    fragColor = texture(textureSampler, uvTexCoord);
 }

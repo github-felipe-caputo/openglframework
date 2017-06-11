@@ -9,10 +9,10 @@
 
 #include "shape.h"
 
-/* 
+/*
  * addTriangle
  *
- * INPUT: 
+ * INPUT:
  *         xN - the x value of the Nth point of the triangle.
  *         yN - the y value of the Nth point of the triangle.
  *         zN - the z value of the Nth point of the triangle.
@@ -23,7 +23,7 @@
  *         are required to be in counter clockwise order. This function
  *         will also calculate normals for the vertices, however every vertex
  *         of the triangle will have the same normal.
- *         The variables numVertices, numNormals andnumElements are also 
+ *         The variables numVertices, numNormals andnumElements are also
  *         changed accordingly.
  *
  */
@@ -65,16 +65,16 @@ void Shape::addTriangle(float x0, float y0, float z0,
     normals.push_back(nz);
 }
 
-/* 
+/*
  * addTriangle
  *
- * INPUT: 
+ * INPUT:
  *         v0 - the first vertex of the triangle.
  *         v1 - the second vertex of the triangle.
  *         v2 - the third vertex of the triangle.
  *
  * DESCRIPTION:
- *         This function works exactly like the previous addTriangle, 
+ *         This function works exactly like the previous addTriangle,
  *         with the exception that instead of using as arguments the x, y,
  *         and z of each vertex, we use three arrays of size 3 that hold
  *         those values. In other words, v0[3] = {x, y, z}.
@@ -115,10 +115,10 @@ void Shape::addTriangle(float v0[], float v1[], float v2[]) {
     normals.push_back(nz);
 }
 
-/* 
+/*
  * addTriangleAndNormals
  *
- * INPUT: 
+ * INPUT:
  *         xN - the x value of the Nth point of the triangle.
  *         yN - the y value of the Nth point of the triangle.
  *         zN - the z value of the Nth point of the triangle.
@@ -163,10 +163,10 @@ void Shape::addTriangleAndNormals(float x0, float y0, float z0,
     normals.push_back(nz2);
 }
 
-/* 
+/*
  * addTriangleAndNormals
  *
- * INPUT: 
+ * INPUT:
  *         v0 - the first vertex of the triangle.
  *         v1 - the second vertex of the triangle.
  *         v2 - the third vertex of the triangle.
@@ -175,7 +175,7 @@ void Shape::addTriangleAndNormals(float x0, float y0, float z0,
  *         n2 - the normal of the third vertex of the triangle.
  *
  * DESCRIPTION:
- *         This function works exactly like the previous addTriangleAndNormals, 
+ *         This function works exactly like the previous addTriangleAndNormals,
  *         with the exception that instead of using as arguments the x, y,
  *         and z of each vertex, we use three arrays of size 3 that hold
  *         those values. In other words, v0[3] = {x, y, z}.
@@ -210,10 +210,10 @@ void Shape::addTriangleAndNormals(float v0[], float v1[], float v2[],
     normals.push_back(n2[2]);
 }
 
-/* 
+/*
  * addTriangleWithSubdivision
  *
- * INPUT: 
+ * INPUT:
  *         v0 - the first vertex of the triangle.
  *         v1 - the second vertex of the triangle.
  *         v2 - the third vertex of the triangle.
@@ -222,7 +222,7 @@ void Shape::addTriangleAndNormals(float v0[], float v1[], float v2[],
  * DESCRIPTION:
  *         This function is used together with the makeSphere function.
  *         It's responsible for subdividing the triangles of the sphere so that
- *         we get a better result. Essentially the triangle "0, 1, 2" will 
+ *         we get a better result. Essentially the triangle "0, 1, 2" will
  *         become triangles "0,3,5", "3,1,4", "5,4,2" and "3,4,5".
  *
  *                      0
@@ -231,9 +231,9 @@ void Shape::addTriangleAndNormals(float v0[], float v1[], float v2[],
  *
  *         It's a recursive function so it can keep sub dividing the triangles.
  *         This function will also be different depending on the type of
- *         normals. If you want the FLAT normals, then for each triangles, 
+ *         normals. If you want the FLAT normals, then for each triangles,
  *         the vertices will have the same normals. If you want the SMOOTH normals
- *         then another function will be called where we tell it what 
+ *         then another function will be called where we tell it what
  *         are the normals, in the case of the sphere you can consider the normals
  *         of the points as the same as the points (they are vertices coming from
  *         the origin).
@@ -269,7 +269,7 @@ void Shape::addTriangleWithSubdivision(float v0[], float v1[], float v2[], int s
     }
 }
 
-/* 
+/*
  * Shape
  *
  * DESCRIPTION:
@@ -277,10 +277,10 @@ void Shape::addTriangleWithSubdivision(float v0[], float v1[], float v2[], int s
  *         variables to 0 such as the number of vertices of the shape.
  *
  */
-Shape::Shape () : numVertices(0), numColors(0), numNormals(0), numElements(0) { 
+Shape::Shape () : numVertices(0), numColors(0), numNormals(0), numElements(0) {
 }
 
-/* 
+/*
  * ~Shape
  *
  * DESCRIPTION:
@@ -290,7 +290,7 @@ Shape::Shape () : numVertices(0), numColors(0), numNormals(0), numElements(0) {
 Shape::~Shape () {
 }
 
-/* 
+/*
  * clearShape
  *
  * DESCRIPTION:
@@ -319,7 +319,7 @@ void Shape::clearShape () {
     specExp = 0;
 }
 
-/* 
+/*
  * getVertices
  *
  * RETURN:
@@ -330,7 +330,7 @@ float* Shape::getVertices() {
     return &vertices[0];
 }
 
-/* 
+/*
  * getNumVertices
  *
  * RETURN:
@@ -341,7 +341,7 @@ GLuint Shape::getNumVertices() {
     return numVertices;
 }
 
-/* 
+/*
  * getColors
  *
  * RETURN:
@@ -352,7 +352,7 @@ float* Shape::getColors() {
     return &colors[0];
 }
 
-/* 
+/*
  * getNumColors
  *
  * RETURN:
@@ -363,7 +363,7 @@ GLuint Shape::getNumColors() {
     return numColors;
 }
 
-/* 
+/*
  * getUV
  *
  * RETURN:
@@ -374,7 +374,7 @@ float* Shape::getUV() {
     return &uvtextures[0];
 }
 
-/* 
+/*
  * getNumUV
  *
  * RETURN:
@@ -385,7 +385,7 @@ GLuint Shape::getNumUV() {
     return numTextures;
 }
 
-/* 
+/*
  * getNormals
  *
  * RETURN:
@@ -396,7 +396,7 @@ float* Shape::getNormals() {
     return &normals[0];
 }
 
-/* 
+/*
  * getNumNormals
  *
  * RETURN:
@@ -407,7 +407,7 @@ GLuint Shape::getNumNormals() {
     return numNormals;
 }
 
-/* 
+/*
  * getElements
  *
  * RETURN:
@@ -418,7 +418,7 @@ GLshort* Shape::getElements() {
     return &elements[0];
 }
 
-/* 
+/*
  * getNumElements
  *
  * RETURN:
@@ -429,10 +429,10 @@ GLuint Shape::getNumElements() {
     return numElements;
 }
 
-/* 
+/*
  * setMaterials
  *
- * INPUT: 
+ * INPUT:
  *         newAmbientMaterial - RGB values for the ambient material.
  *         newKa - ambient coefficient.
  *         newDiffuseMaterial - RGB values for the diffuse material.
@@ -466,10 +466,10 @@ void Shape::setMaterials(float newAmbientMaterial[], float newKa,
     specExp = newSpecExp;
 }
 
-/* 
+/*
  * setMaterials
  *
- * INPUT: 
+ * INPUT:
  *         ambientX - RGB values for the ambient material.
  *         newKa - ambient coefficient.
  *         diffuseX - RGB values for the diffuse material.
@@ -511,7 +511,7 @@ void Shape::setMaterials(float ambientR, float ambientG, float ambientB, float n
     specExp = newSpecExp;
 }
 
-/* 
+/*
  * getAmbientMaterial
  *
  * RETURN:
@@ -522,7 +522,7 @@ float* Shape::getAmbientMaterial() {
     return &ambientMaterial[0];
 }
 
-/* 
+/*
  * getDiffuseMaterial
  *
  * RETURN:
@@ -533,7 +533,7 @@ float* Shape::getDiffuseMaterial() {
     return &diffuseMaterial[0];
 }
 
-/* 
+/*
  * getSpecularMaterial
  *
  * RETURN:
@@ -544,7 +544,7 @@ float* Shape::getSpecularMaterial() {
     return &specularMaterial[0];
 }
 
-/* 
+/*
  * getKa
  *
  * RETURN:
@@ -555,7 +555,7 @@ float Shape::getKa() {
     return Ka;
 }
 
-/* 
+/*
  * getKd
  *
  * RETURN:
@@ -566,7 +566,7 @@ float Shape::getKd() {
     return Kd;
 }
 
-/* 
+/*
  * getKs
  *
  * RETURN:
@@ -577,7 +577,7 @@ float Shape::getKs() {
     return Ks;
 }
 
-/* 
+/*
  * getSpecExp
  *
  * RETURN:
@@ -588,15 +588,15 @@ float Shape::getSpecExp() {
     return specExp;
 }
 
-/* 
+/*
  * makeCube
  *
- * INPUT: 
+ * INPUT:
  *         subDiv - number of subdivisions for the squares.
  *
  * DESCRIPTION:
  *         Creates a simple cube centered at the origin, with each
- *         side of total length 1, and squares with certain 
+ *         side of total length 1, and squares with certain
  *         sub divisions.
  *
  */
@@ -684,10 +684,10 @@ void Shape::makeCube (int subDiv) {
     }
 }
 
-/* 
+/*
  * makeSphere
  *
- * INPUT: 
+ * INPUT:
  *         subDivBase - number of subdivisions on the bases.
  *         subDivHeight - number of subdivisions on height.
  *         normalType - this is the type of normal the sphere can have.
@@ -795,10 +795,10 @@ void Shape::makeCylinder ( int subDivBase, int subDivHeight, int normalType ) {
     }
 }
 
-/* 
+/*
  * makeSphere
  *
- * INPUT: 
+ * INPUT:
  *         subDiv - number of subdivisions for the triangles.
  *         normalType - this is the type of normal the sphere can have.
  *
@@ -807,8 +807,8 @@ void Shape::makeCylinder ( int subDivBase, int subDivHeight, int normalType ) {
  *         subdivision. It can also have two types of normals, FLAT or
  *         SMOOTH.
  *
- *         Reference: 
- *         Hoffmann, Gernot. Sphere Tesselation by Icosahedron Subdivision. 
+ *         Reference:
+ *         Hoffmann, Gernot. Sphere Tesselation by Icosahedron Subdivision.
  *         http://docs-hoffmann.de/ikos27042002.pdf
  *
  */
@@ -831,7 +831,7 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     vert[0][1] = 0;
     vert[0][2] = 1;
 
-    // upper pentagon 
+    // upper pentagon
     float psi = 0;
     for( int i = 1; i < 6; ++i ) {
         vert[i][0] = cth * cos(psi);
@@ -842,7 +842,7 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     }
 
     // lower pentagon
-    psi = PI / 5.0f; 
+    psi = PI / 5.0f;
     for( int i = 6; i < 11; ++i ) {
         vert[i][0] = cth * cos(psi);
         vert[i][1] = cth * sin(psi);
@@ -888,12 +888,12 @@ void Shape::makeSphere ( int subDiv, int normalType ) {
     for(int i = 0; i < numElements; ++i){
         elements.push_back(i);
     }
-}      
+}
 
-/* 
+/*
  * readObjVert
  *
- * INPUT: 
+ * INPUT:
  *         filename - the .obj file you want to load
  *
  * DESCRIPTION:
@@ -932,10 +932,10 @@ void Shape::readObjVert ( char* filename ) {
     numElements = elements.size();
 }
 
-/* 
+/*
  * readObjVertNorm
  *
- * INPUT: 
+ * INPUT:
  *         filename - the .obj file you want to load
  *
  * DESCRIPTION:
@@ -972,14 +972,14 @@ void Shape::readObjVertNorm ( char* filename ) {
                 ss >> values[0] >> values[1];
                 in_uvtextures.push_back(values[0]);
                 in_uvtextures.push_back(values[1]);
-            } // normals 
+            } // normals
             else if (!firstWord.compare("vn")) {
                 ss >> values[0] >> values[1] >> values[2];
                 in_normals.push_back(values[0]);
                 in_normals.push_back(values[1]);
                 in_normals.push_back(values[2]);
             } // faces
-            else if (!firstWord.compare("f")) { 
+            else if (!firstWord.compare("f")) {
                 while(ss >> aux) { // aux is like "1//3"
                     std::istringstream ss2(aux);
                     while(std::getline(ss2, aux2, '/')) {
@@ -989,7 +989,7 @@ void Shape::readObjVertNorm ( char* filename ) {
                     }
                 }
             }
-        }   
+        }
         firstWord.clear();
     }
 
@@ -1033,18 +1033,18 @@ void Shape::readObjVertNorm ( char* filename ) {
     numElements = elements.size();
 }
 
-/* 
+/*
  * readObjVertNorm
  *
- * INPUT: 
+ * INPUT:
  *         filename - the .obj file you want to load
- *         filetexture - the texture file, can be of any extension readable 
+ *         filetexture - the texture file, can be of any extension readable
  *                       by SOIL
  *
  * DESCRIPTION:
  *         This function reads an .obj file and creates the geometry for the
  *         object it describes. In particular this function will only work
- *         for .objs that have vertex, texture, normals and face data of 
+ *         for .objs that have vertex, texture, normals and face data of
  *         order 3 with the pattern "number/number/number"
  *
  *         Note: Uses SOIL to load images: http://www.lonesock.net/soil.html
@@ -1066,7 +1066,7 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
         if(!line.empty()) {
             std::istringstream ss(line);
             ss >> firstWord;// >> values[0] >> values[1] >> values[2];
-            
+
             // vertices
             if (!firstWord.compare("v")) {
                 ss >> values[0] >> values[1] >> values[2];
@@ -1078,21 +1078,21 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
                 ss >> values[0] >> values[1];
                 in_uvtextures.push_back(values[0]);
                 in_uvtextures.push_back(values[1]);
-            } // normals 
+            } // normals
             else if (!firstWord.compare("vn")) {
                 ss >> values[0] >> values[1] >> values[2];
                 in_normals.push_back(values[0]);
                 in_normals.push_back(values[1]);
                 in_normals.push_back(values[2]);
             } // faces
-            else if (!firstWord.compare("f")) { 
+            else if (!firstWord.compare("f")) {
                 while(ss >> aux) { // aux is like "1/2/3"
                     std::istringstream ss2(aux);
                     while(std::getline(ss2, aux2, '/')) {
                         in_elements.push_back( atoi(aux2.c_str()) - 1); // Wavefront .obj files start counting from 1
                     }
                 }
-            }  
+            }
         }
         firstWord.clear();
     }
@@ -1143,42 +1143,99 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     numElements = elements.size();
 
     // Now, reading the texture using SOIL directly as a new OpenGL texture
-    textureID = SOIL_load_OGL_texture
-            (
-                filetexture,
-                SOIL_LOAD_AUTO,
-                SOIL_CREATE_NEW_ID,
-                SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y
-            );
-    
+    textureID = load_bmp(filetexture);
+
     // check for an error during the load process
     if( 0 == textureID ) {
-        printf( "SOIL loading error: '%s'\n", SOIL_last_result() );
-    } 
+        printf( "Error loading texture\n" );
+    }
 }
 
-/* 
+/*
  * setUpTexture
  *
- * INPUT: 
+ * INPUT:
  *         program - the program ID of the shaders being used.
  *         textureShaderAttribute - the name of the variable "sampler2D" on
  *                                  the shader.
  *
  * DESCRIPTION:
- *         This function will bind the texture, setup the variables to 
+ *         This function will bind the texture, setup the variables to
  *         display it and will activate it.
  *
  */
 void Shape::setUpTexture (GLuint program, char* textureShaderAttribute) {
+    /*
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);*/
 
     GLuint textID = glGetUniformLocation(program, textureShaderAttribute);
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(textID, 0);
+    //glActiveTexture(GL_TEXTURE0);
+    //glUniform1i(textID, 0);
+}
+
+GLuint Shape::load_bmp(char const* Filename)
+{
+    // Data read from the header of the BMP file
+    unsigned char header[54]; // Each BMP file begins by a 54-bytes header
+    unsigned int dataPos;     // Position in the file where the actual data begins
+    unsigned int width, height;
+    unsigned int imageSize;   // = width*height*3
+    // Actual RGB data
+    unsigned char * data;
+
+    FILE * file = fopen(Filename,"rb");
+    if (!file){printf("Image could not be opened: %s \n", Filename); return 0;}
+
+    if ( fread(header, 1, 54, file)!=54 ){ // If not 54 bytes read : problem
+        printf("Not a correct BMP file\n");
+        return false;
+    }
+
+    if ( header[0]!='B' || header[1]!='M' ){
+        printf("Not a correct BMP file\n");
+        return 0;
+    }
+
+    // Read ints from the byte array
+    dataPos    = *(int*)&(header[0x0A]);
+    imageSize  = *(int*)&(header[0x22]);
+    width      = *(int*)&(header[0x12]);
+    height     = *(int*)&(header[0x16]);
+
+    // Some BMP files are misformatted, guess missing information
+    if (imageSize==0)    imageSize=width*height*3; // 3 : one byte for each Red, Green and Blue component
+    if (dataPos==0)      dataPos=54; // The BMP header is done that way
+
+    // Create a buffer
+    data = new unsigned char [imageSize];
+
+    // Read the actual data from the file into the buffer
+    fread(data,1,imageSize,file);
+
+    //Everything is in memory now, the file can be closed
+    fclose(file);
+
+    // Create one OpenGL texture
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    // "Bind" the newly created texture : all future texture functions will modify this texture
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    // Give the image to OpenGL
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    // Nice trilinear filtering.
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    return textureID;
 }

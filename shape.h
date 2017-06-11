@@ -12,11 +12,9 @@
 
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
-#include <SOIL.h>
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <SOIL/SOIL.h>
 #endif
 
 #include <vector>
@@ -522,7 +520,10 @@ public:
      *         display it and will activate it.
      *
      */
-    void setUpTexture ( GLuint program, char* textureShaderAttribute ) ;
+    void setUpTexture ( GLuint program, char* textureShaderAttribute );
+
+
+    GLuint load_bmp(char const* Filename);
 };
 
 #endif

@@ -12,11 +12,9 @@
 
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
-#include <SOIL.h>
 #else
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <SOIL/SOIL.h>
 #endif
 
 #include "shape.h" // shape is used because of the materials
