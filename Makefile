@@ -3,8 +3,8 @@ CXXFLAGS = 		-I/usr/local/include -O2 -std=c++11
 LDFLAGS =		-L/usr/local/lib
 LDLIBS =		-lGLEW -framework OpenGL -framework GLUT
 
-CPP_FILES = main.cpp shader.cpp shape.cpp mathHelper.cpp camera.cpp lighting.cpp
-OBJFILES = main.o shader.o shape.o mathHelper.o camera.o lighting.o
+CPP_FILES = main.cpp shader.cpp shape.cpp mathHelper.cpp imageHelper.cpp camera.cpp lighting.cpp
+OBJFILES = main.o shader.o shape.o mathHelper.o imageHelper.o camera.o lighting.o
 
 main: $(OBJFILES)
 	$(CXX) $(CXXFLAGS) -o main $(OBJFILES) $(LDFLAGS) $(LDLIBS)
@@ -21,6 +21,9 @@ shape.o: shape.cpp
 mathHelper.o: mathHelper.cpp
 	$(CXX) $(CXXFLAGS) -c mathHelper.cpp $(LDFLAGS) $(LDLIBS)
 
+imageHelper.o: imageHelper.cpp
+	$(CXX) $(CXXFLAGS) -c imageHelper.cpp $(LDFLAGS) $(LDLIBS)
+
 camera.o: camera.cpp
 	$(CXX) $(CXXFLAGS) -c camera.cpp $(LDFLAGS) $(LDLIBS)
 
@@ -33,6 +36,7 @@ main.o: shader.h shape.h mathHelper.h camera.h
 shader.o: shader.h
 shape.o: shape.h
 mathHelper.o: mathHelper.h
+imageHelper.o: imageHelper.h
 camera.o: camera.h
 lighting.o: lighting.h
 

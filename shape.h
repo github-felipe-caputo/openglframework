@@ -27,6 +27,7 @@
 #include <string>
 
 #include "mathHelper.h"
+#include "imageHelper.h"
 
 using namespace std;
 
@@ -521,9 +522,6 @@ public:
      *
      */
     void setUpTexture ( GLuint program, char* textureShaderAttribute );
-
-
-    GLuint load_bmp(char const* Filename);
 };
 
 #endif
