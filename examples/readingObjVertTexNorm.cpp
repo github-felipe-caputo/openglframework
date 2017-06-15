@@ -64,7 +64,7 @@ void createShape() {
     // SHAPE
     //
     shape.clearShape();
-    shape.readObjVertTexNorm( "objects/textureCube.obj" , "objects/textureCube.png" );
+    shape.readObjVertTexNorm( "objects/cube.obj" , "objects/cubebmponline.bmp" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
     int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
@@ -132,7 +132,7 @@ void createShape() {
     glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
 
     // set up textures
-    shape.setUpTexture( program, "vTexCoord" );
+    //shape.setUpTexture( program, "textureSampler" );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 }

@@ -17,6 +17,7 @@
 #include <GL/gl.h>
 #endif
 
+#include <iostream>
 #include <stdio.h>
 
 /*

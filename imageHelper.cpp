@@ -24,6 +24,7 @@ GLuint load_bmp(char const* Filename) {
         printf("Not a correct BMP file\n");
         return false;
     }
+    rewind(file);
 
     if ( header[0]!='B' || header[1]!='M' ){
         printf("Not a correct BMP file\n");
@@ -36,6 +37,11 @@ GLuint load_bmp(char const* Filename) {
     width      = *(int*)&(header[0x12]);
     height     = *(int*)&(header[0x16]);
 
+    //height = width;
+    //imageSize=width*height*3;
+
+    //std::cout << dataPos << " " << imageSize << " " << width << " " << height << std::endl;
+
     // Some BMP files are misformatted, guess missing information
     if (imageSize==0)    imageSize=width*height*3; // 3 : one byte for each Red, Green and Blue component
     if (dataPos==0)      dataPos=54; // The BMP header is done that way
@@ -44,7 +50,7 @@ GLuint load_bmp(char const* Filename) {
     data = new unsigned char [imageSize];
 
     // Read the actual data from the file into the buffer
-    fread(data,1,imageSize,file);
+    fread(data - dataPos,1,imageSize,file); // - dataPos WEIRD
 
     //Everything is in memory now, the file can be closed
     fclose(file);
