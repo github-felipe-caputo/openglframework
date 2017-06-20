@@ -8,23 +8,22 @@
  */
 #include "imageHelper.h"
 
+// With the help of http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
 GLuint load_bmp(char const* Filename) {
     // Data read from the header of the BMP file
     unsigned char header[54]; // Each BMP file begins by a 54-bytes header
-    unsigned int dataPos;     // Position in the file where the actual data begins
+    unsigned int dataPos;
     unsigned int width, height;
-    unsigned int imageSize;   // = width*height*3
-    // Actual RGB data
+    unsigned int imageSize;
     unsigned char * data;
 
     FILE * file = fopen(Filename,"rb");
     if (!file){printf("Image could not be opened: %s \n", Filename); return 0;}
 
-    if ( fread(header, 1, 54, file)!=54 ){ // If not 54 bytes read : problem
+    if ( fread(header, 1, 54, file)!=54 ){
         printf("Not a correct BMP file\n");
         return false;
     }
-    rewind(file);
 
     if ( header[0]!='B' || header[1]!='M' ){
         printf("Not a correct BMP file\n");
@@ -37,20 +36,19 @@ GLuint load_bmp(char const* Filename) {
     width      = *(int*)&(header[0x12]);
     height     = *(int*)&(header[0x16]);
 
-    //height = width;
-    //imageSize=width*height*3;
-
-    //std::cout << dataPos << " " << imageSize << " " << width << " " << height << std::endl;
+    std::cout << dataPos << " " << imageSize << " " << width << " " << height << std::endl;
 
     // Some BMP files are misformatted, guess missing information
-    if (imageSize==0)    imageSize=width*height*3; // 3 : one byte for each Red, Green and Blue component
-    if (dataPos==0)      dataPos=54; // The BMP header is done that way
+    if (imageSize==0)    imageSize=width*height*3; // PROBLEM: not always 3, bitmaps can save alpha information
+    if (dataPos==0)      dataPos=54; // The BMP header has size of 54, that DOES NOT MEAN the data comes right after
 
     // Create a buffer
     data = new unsigned char [imageSize];
 
     // Read the actual data from the file into the buffer
-    fread(data - dataPos,1,imageSize,file); // - dataPos WEIRD
+    rewind(file);
+    fseek(file, dataPos, SEEK_SET);
+    fread(data,1,imageSize,file);
 
     //Everything is in memory now, the file can be closed
     fclose(file);
@@ -63,7 +61,7 @@ GLuint load_bmp(char const* Filename) {
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     // Give the image to OpenGL
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
 
     // Nice trilinear filtering.
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
