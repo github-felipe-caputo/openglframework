@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <stdio.h>
+#include <png.h>
 
 /*
  * load_bmp
@@ -32,8 +33,24 @@
  * DESCRIPTION:
  *         This function is responsible for loading a texture into
  *         OpenGL with trilinear filtering and returning the texture ID.
- *
+ *         Reads a bmp file.
  */
-GLuint load_bmp(char const* Filename);
+GLuint load_bmp(char const* filename);
+
+/*
+ * load_png
+ *
+ * INPUT:
+ *         Filename - path to the texture file.
+ *
+ * RETURN:
+ *         The textureID of the file used as argument.
+ *
+ * DESCRIPTION:
+ *         This function is responsible for loading a texture into
+ *         OpenGL with trilinear filtering and returning the texture ID.
+ *         Reads a png file.
+ */
+GLuint load_png(char const* filename);
 
 #endif

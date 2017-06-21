@@ -1143,7 +1143,8 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     numElements = elements.size();
 
     // Now, reading the texture using SOIL directly as a new OpenGL texture
-    textureID = load_bmp(filetexture);
+    //textureID = load_bmp(filetexture);
+    textureID = load_png(filetexture);
 
     // check for an error during the load process
     if( 0 == textureID ) {

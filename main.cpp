@@ -64,7 +64,7 @@ void createShape() {
     // SHAPE
     //
     shape.clearShape();
-    shape.readObjVertTexNorm( "objects/cube.obj" , "objects/cubebmponline.bmp" );
+    shape.readObjVertTexNorm( "objects/cube.obj" , "objects/cube.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
     int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
