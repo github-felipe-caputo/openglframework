@@ -17,9 +17,11 @@
 #include <GL/gl.h>
 #endif
 
-#include <iostream>
+//#include <iostream>
+#include <stdlib.h>
 #include <stdio.h>
 #include <png.h>
+#include <iostream>
 
 /*
  * load_bmp
@@ -34,6 +36,9 @@
  *         This function is responsible for loading a texture into
  *         OpenGL with trilinear filtering and returning the texture ID.
  *         Reads a bmp file.
+ *
+ *         With the help of
+ *         http://www.opengl-tutorial.org/beginners-tutorials/tutorial-5-a-textured-cube/
  */
 GLuint load_bmp(char const* filename);
 
@@ -50,6 +55,14 @@ GLuint load_bmp(char const* filename);
  *         This function is responsible for loading a texture into
  *         OpenGL with trilinear filtering and returning the texture ID.
  *         Reads a png file.
+ *
+ *         In particular this function will change the png file into one with
+ *         8 bits and with an alpha channel (if the image does not have one
+ *         it will fill it with 0xFF).
+ *
+ *         With the help of
+ *         https://en.wikibooks.org/wiki/OpenGL_Programming/Intermediate/Textures#A_simple_libpng_example
+ *         http://www.libpng.org/pub/png/libpng-manual.txt
  */
 GLuint load_png(char const* filename);
 

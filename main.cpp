@@ -132,7 +132,7 @@ void createShape() {
     glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
 
     // set up textures
-    //shape.setUpTexture( program, "textureSampler" );
+    shape.setUpTexture( program, "textureSampler" );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 }
