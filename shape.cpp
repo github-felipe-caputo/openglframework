@@ -1061,6 +1061,10 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     vector<float> in_normals;
     vector<float> in_elements;
 
+    if (!ifs.is_open()) {
+        fprintf(stderr, "error while opening file %s \n", filename);
+    }
+
     // Reading the file
     while(std::getline(ifs, line)) {
         if(!line.empty()) {

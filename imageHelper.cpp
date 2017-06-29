@@ -35,17 +35,17 @@ GLuint load_bmp(char const* filename) {
 
     FILE * file = fopen(filename,"rb");
     if (!file) {
-        printf("Image could not be opened: %s \n", filename);
+        fprintf(stderr, "Image could not be opened: %s \n", filename);
         return 0;
     }
 
     if ( fread(header, 1, 54, file)!=54 ) {
-        printf("Not a correct BMP file\n");
+        fprintf(stderr, "Not a correct BMP file\n");
         return false;
     }
 
     if ( header[0]!='B' || header[1]!='M' ) {
-        printf("Not a correct BMP file\n");
+        fprintf(stderr, "Not a correct BMP file\n");
         return 0;
     }
 
