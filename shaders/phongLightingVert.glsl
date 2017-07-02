@@ -1,4 +1,4 @@
-#version 130
+#version 410
 
 // Shape values
 in vec3 vPosition;
@@ -13,9 +13,9 @@ uniform mat4 mProjMatrix;
 uniform vec4 lightPos;
 
 // Out values to the fragment shader
-varying vec3 N;
-varying vec3 L;
-varying vec3 V;
+out vec3 N;
+out vec3 L;
+out vec3 V;
 
 void main () {
     //
@@ -32,7 +32,7 @@ void main () {
     mat3 normalMatrix = mat3(transpose(inverse(modelView)));
 
     // vertex position in camera coord
-    vec4 posEyeCoord = modelView * vec4(vPosition, 1.0); 
+    vec4 posEyeCoord = modelView * vec4(vPosition, 1.0);
 
     // light position in camera coord
     // but no transformation (it's not moving like the objects)
