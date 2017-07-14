@@ -1,8 +1,13 @@
 
 // OpenGL stuff
+#ifdef __APPLE__
+#include <GLUT/GLUT.h>
+#include <OpenGL/gl3.h>
+#else
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/gl.h>
+#endif
 
 // C libraries
 #include <iostream>
@@ -12,7 +17,7 @@
 #include "mathHelper.h"
 
 // Classes
-#include "shape.h"      
+#include "shape.h"
 #include "camera.h"
 #include "lighting.h"
 
@@ -61,18 +66,18 @@ int materials = 0;
 
 void createShapes(int normalType, int shaders, int materials) {
     //
-    // SHAPE 
+    // SHAPE
     //
     shape.clearShape();
     shape.makeSphere(3, normalType);
 
     if(materials == 0)
-        shape.setMaterials(0.1f, 0.5f, 0.9f, 0.5f, 
-                           0.0f, 0.0f, 0.5f, 0.9f, 
+        shape.setMaterials(0.1f, 0.5f, 0.9f, 0.5f,
+                           0.0f, 0.0f, 0.5f, 0.9f,
                            1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
     else
-        shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f, 
-                           0.89f, 0.0f, 0.0f, 0.7f, 
+        shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
+                           0.89f, 0.0f, 0.0f, 0.7f,
                            1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
@@ -81,10 +86,10 @@ void createShapes(int normalType, int shaders, int materials) {
 
     // Load shaders
     if (shaders == 0)
-        program = shader::makeShaderProgram( "shaders/flatLightingVert.glsl", 
+        program = shader::makeShaderProgram( "shaders/flatLightingVert.glsl",
                                              "shaders/flatLightingFrag.glsl" );
-    else 
-        program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl", 
+    else
+        program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
                                              "shaders/phongLightingFrag.glsl" );
 
     //
@@ -168,7 +173,7 @@ void init () {
 }
 
 void display () {
-    // clear 
+    // clear
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 
@@ -214,32 +219,32 @@ void display () {
 void keyboard( unsigned char key, int x, int y ) {
     switch( key ) {
         // Camera
-        case 'w':                      
+        case 'w':
             cam.moveForward();
             break;
-        case 's':                      
+        case 's':
             cam.moveBackward();
             break;
-        case 'd':                      
+        case 'd':
             cam.strafeRight();
             break;
-        case 'a':                      
+        case 'a':
             cam.strafeLeft();
             break;
-        case 'r':                      
+        case 'r':
             cam.moveUp();
             break;
-        case 'f':                      
+        case 'f':
             cam.moveDown();
             break;
         // Animation
-        case 'j':                      
+        case 'j':
             animatingX = !animatingX;
             break;
-        case 'k':                      
+        case 'k':
             animatingY = !animatingY;
             break;
-        case 'l':                      
+        case 'l':
             animatingZ = !animatingZ;
             break;
         // normals
@@ -247,7 +252,7 @@ void keyboard( unsigned char key, int x, int y ) {
             if (normalType == FLAT){
                 createShapes(SMOOTH, shaders, materials);
                 normalType = SMOOTH;
-            }else{
+            } else {
                 createShapes(FLAT, shaders, materials);
                 normalType = FLAT;
             }
@@ -257,7 +262,7 @@ void keyboard( unsigned char key, int x, int y ) {
             if (shaders == 0){
                 createShapes(normalType, 1, materials);
                 shaders = 1;
-            }else{
+            } else {
                 createShapes(normalType, 0, materials);
                 shaders = 0;
             }
@@ -267,7 +272,7 @@ void keyboard( unsigned char key, int x, int y ) {
             if (materials == 0){
                 createShapes(normalType, shaders, 1);
                 materials = 1;
-            }else{
+            } else {
                 createShapes(normalType, shaders, 0);
                 materials = 0;
             }
@@ -308,11 +313,11 @@ void mouseMovementEvent( int x, int y ) {
 
 
 int main ( int argc, char **argv ) {
-    // initialize glut 
+    // initialize glut
     glutInit(&argc, argv);
 
     // memory buffers
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
     //set window size
     glutInitWindowSize(512, 512);
@@ -320,12 +325,16 @@ int main ( int argc, char **argv ) {
     // window
     glutCreateWindow( "OpenGL Framework" );
 
+    #ifndef __APPLE__
     // Try to initalize glew to use gl apis
     GLenum err = glewInit();
     if (GLEW_OK != err) {
         fprintf(stderr, "GLEW error");
         return 1;
     }
+    #endif
+
+    std::printf("%s\n%s\n", glGetString(GL_RENDERER),  glGetString(GL_VERSION));
 
     init();
 
