@@ -14,7 +14,7 @@ To compile the code you will need
 - [GLEW](http://glew.sourceforge.net/) - Determining which OpenGL extensions are supported.
 - [freeglut](http://freeglut.sourceforge.net/) - Takes care of all the system-specific chores required for creating windows
 - [Matrix TCL Pro](http://www.techsoftpl.com/matrix/) - A generic C++ template class library for performing matrix algebra calculations.
-- [Simple OpenGL Image Library](http://www.lonesock.net/soil.html) - A library to load images in OpenGL.
+- [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library, for loading PNG textures.
 
 A `Makefile` is available on the repo as an example.
 
