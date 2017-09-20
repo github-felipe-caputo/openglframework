@@ -53,6 +53,8 @@ class Shape {
     vector<float> uvtextures;
     GLuint numTextures;
     GLuint textureID;
+    GLuint textureDiffMapID;
+    GLuint textureSpecMapID;
 
     // the normals each shape vertex, and the number of normals
     vector<float> normals;
@@ -181,8 +183,6 @@ class Shape {
      *
      */
     void addTriangleWithSubdivision(float v0[], float v1[], float v2[], int subDiv, int normalType);
-
-
 
 public:
 
@@ -507,6 +507,8 @@ public:
      *
      */
     void readObjVertTexNorm ( char* filename, char* filetexture );
+
+    void readObjLightMap ( char* filename , char* filetextureDiff, char* filetextureSpec );
 
     /*
      * setUpTexture
