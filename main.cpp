@@ -55,62 +55,42 @@ float zVec[] = {0,0,1};
 bool animatingX = false;
 bool animatingY = false;
 bool animatingZ = false;
-float xtheta = 0.0f;
-float ytheta = 0.0f;
-float ztheta = 0.0f;
+float xtheta = 30.0f;
+float ytheta = 30.0f;
+float ztheta = 30.0f;
 
-// Shading and normals
-int normalType = FLAT;
-int shaders = 0;
-int materials = 0;
-
-void createShapes(int normalType, int shaders, int materials) {
+void createShape() {
     //
     // SHAPE
     //
     shape.clearShape();
-    shape.makeSphere(3, normalType);
-
-    if(materials == 0)
-        shape.setMaterials(0.1f, 0.5f, 0.9f, 0.5f,
-                           0.0f, 0.0f, 0.5f, 0.9f,
-                           1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
-    else
-        shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
-                           0.89f, 0.0f, 0.0f, 0.7f,
-                           1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
+    shape.readObjLightMap( "objects/BrickWall.obj" , "objects/Brick_RedNormal_1k_d.png", "objects/Brick_RedNormal_1k_g.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
-    int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
+    int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
     int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
+    cout << vShapeDataSize << endl;
+    cout << uvShapeDataSize << endl;
+    cout << eShapeDataSize << endl;
+
     // Load shaders
-    if (shaders == 0)
-        program = shader::makeShaderProgram( "shaders/flatLightingVert.glsl",
-                                             "shaders/flatLightingFrag.glsl" );
-    else
-        program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
-                                             "shaders/phongLightingFrag.glsl" );
+    program = shader::makeShaderProgram( "shaders/simpleTextureVert.glsl",
+                                         "shaders/doubleTextureFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
     //
-
-    if( bufferInit ) {
-        glDeleteBuffers( 1, &vbuffer );
-        glDeleteBuffers( 1, &ebuffer );
-        glDeleteVertexArrays( 1, &vaoShape );
-    }
 
     // Create Vertex Array Buffer
     glGenBuffers(1, &vbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // This example, just vertex data
-    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize+nShapeDataSize, NULL, GL_STATIC_DRAW );
+    // This example, vertex data and texture coordinates
+    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + uvShapeDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, uvShapeDataSize, shape.getUV() );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -139,7 +119,7 @@ void createShapes(int normalType, int shaders, int materials) {
 
     // Setting up vertex array object
     GLuint vPosition;
-    GLuint vNormal;
+    GLuint vTexCoords;
 
     glGenVertexArrays(1, &vaoShape);
 
@@ -151,19 +131,33 @@ void createShapes(int normalType, int shaders, int materials) {
     glEnableVertexAttribArray( vPosition );
     glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 
-    vNormal = glGetAttribLocation( program, "vNormal" );
-    glEnableVertexAttribArray( vNormal );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
+    vTexCoords = glGetAttribLocation( program , "vTexCoord" );
+    glEnableVertexAttribArray( vTexCoords );
+    glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
+
+    // set up textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shape.getDiffTextureID());
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, shape.getSpecTextureID());
+
+    cout << "=======" << endl;
+    cout << shape.getDiffTextureID() << endl;
+    cout << shape.getSpecTextureID() << endl;
+
+    GLuint textureDiffID = glGetUniformLocation(program, "textureDiff");
+    glUniform1i(textureDiffID, 0);
+
+    GLuint textureSpecID = glGetUniformLocation(program, "textureSpec");
+    glUniform1i(textureSpecID, 1);
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
-
-    // Buffers were created, need to destroy if we use them again
-    bufferInit = true;
 }
 
 void init () {
     // Create the shapes
-    createShapes(FLAT, 0, 0);
+    createShape();
 
     // Some openGL initialization
     glEnable( GL_DEPTH_TEST );
@@ -176,10 +170,10 @@ void display () {
     // clear
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-
-    // Transform will be different for the objects, for now just set it up
-    Matrix mTransform;
+    // Set up the transforms
+    Matrix mTransform = translate(0,0,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
+    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
     // View matrix will be the same for all the objects, just send it now
     Matrix mViewMatrix = cam.getViewMatrix();
@@ -191,25 +185,14 @@ void display () {
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
 
-    //
-    // Illumination BLOW UP
-    //
-    Lighting light(2.0f, 2.0f, 0.0f,
-                   1.0f, 1.0f,  1.0f,
-                   0.5f, 0.5f,  0.5f);
 
     //
     // Binding the shape, transforms, etc
     //
     glBindVertexArray(vaoShape);
 
-    light.setPhongIllumination(program, shape);
-    mTransform = translate(0,0,-1.5) * scale(0.5,0.5,0.5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
     // Drawing elements
     glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
-
 
     // swap the buffers
     glutSwapBuffers();
@@ -247,37 +230,6 @@ void keyboard( unsigned char key, int x, int y ) {
         case 'l':
             animatingZ = !animatingZ;
             break;
-        // normals
-        case 'z':
-            if (normalType == FLAT){
-                createShapes(SMOOTH, shaders, materials);
-                normalType = SMOOTH;
-            } else {
-                createShapes(FLAT, shaders, materials);
-                normalType = FLAT;
-            }
-            break;
-        // shaders
-        case 'x':
-            if (shaders == 0){
-                createShapes(normalType, 1, materials);
-                shaders = 1;
-            } else {
-                createShapes(normalType, 0, materials);
-                shaders = 0;
-            }
-            break;
-        // materials
-        case 'c':
-            if (materials == 0){
-                createShapes(normalType, shaders, 1);
-                materials = 1;
-            } else {
-                createShapes(normalType, shaders, 0);
-                materials = 0;
-            }
-            break;
-        // Subdivisions
         case 033: case 'q': case 'Q':  // terminate the program
             exit( 0 );
             break;
@@ -287,6 +239,7 @@ void keyboard( unsigned char key, int x, int y ) {
 
 // Animate the objects (maybe)
 void animate () {
+
     if( animatingX ) {
         xtheta += 0.1f;
     }
@@ -304,6 +257,7 @@ void mousePressedEvent( int button, int state, int x, int y ) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         cam.setInitialMouseCoord(x,y);
     }
+
 }
 
 // Function to help setting the movement of the camera given the mouse

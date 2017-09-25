@@ -267,6 +267,24 @@ public:
      *
      */
     GLuint getNumUV();
+    
+    /*
+     * getDiffTextureID
+     *
+     * RETURN:
+     *         The ID of the diffuse texture map.
+     *
+     */
+     GLuint getDiffTextureID();
+
+     /*
+     * getSpecTextureID
+     *
+     * RETURN:
+     *         The ID of the specular texture map.
+     *
+     */
+    GLuint getSpecTextureID();
 
     /*
      * getNormals

@@ -386,6 +386,28 @@ GLuint Shape::getNumUV() {
 }
 
 /*
+* getDiffTextureID
+*
+* RETURN:
+*         The ID of the diffuse texture map.
+*
+*/
+GLuint Shape::getDiffTextureID(){
+    return textureDiffMapID;
+}
+     
+/*
+* getSpecTextureID
+*
+* RETURN:
+*         The ID of the specular texture map.
+*
+*/
+GLuint Shape::getSpecTextureID(){
+    return textureSpecMapID;
+}
+
+/*
  * getNormals
  *
  * RETURN:
