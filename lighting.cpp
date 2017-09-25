@@ -219,5 +219,5 @@ void setPhongIllumination(GLuint program) {
     glUniform3fv(ambientID, 1, ambientLight);
 
     GLuint intensityID = glGetUniformLocation(program, "specular");
-    glUniform4fv(intensityID, 1, lightIntensity);
+    glUniform3fv(intensityID, 1, lightIntensity);
 }
