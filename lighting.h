@@ -116,6 +116,21 @@ public:
                               float diffuseMaterial[], float Kd,
                               float specularMaterial[], float Ks, float specExp);
 
+    /*
+     * setPhongIllumination
+     *
+     * INPUT:
+     *         program - the OpenGL shaders that will be used.
+     *
+     * DESCRIPTION:
+     *         This function will submit the data of the light without
+     *         any other calculation done beforehand. It expects the shader
+     *         to be built with a struct containing position, ambient,
+     *         intensity
+     *
+     */
+     void setPhongIllumination(GLuint program);
+
 };
 
 #endif

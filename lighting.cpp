@@ -195,3 +195,29 @@ void Lighting::setPhongIllumination(GLuint program,
     GLuint specExpID = glGetUniformLocation(program, "specExp");
     glUniform1f(specExpID, specExp);
 }
+
+/*
+ * setPhongIllumination
+ *
+ * INPUT:
+ *         program - the OpenGL shaders that will be used.
+ *
+ * DESCRIPTION:
+ *         This function will submit the data of the light without
+ *         any other calculation done beforehand. It expects the shader
+ *         to be built with a struct containing position, ambient,
+ *         intensity
+ *
+ */
+void setPhongIllumination(GLuint program) {
+    // TODO: fix these submissions, they are not correct
+    // check how to send specExp
+    GLuint lightPosID = glGetUniformLocation(program, "lightPos");
+    glUniform3fv(lightPosID, 1, lightPosition);
+
+    GLuint ambientID = glGetUniformLocation(program, "ambient");
+    glUniform3fv(ambientID, 1, ambientLight);
+
+    GLuint intensityID = glGetUniformLocation(program, "specular");
+    glUniform4fv(intensityID, 1, lightIntensity);
+}
