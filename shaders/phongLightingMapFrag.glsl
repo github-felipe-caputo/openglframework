@@ -8,7 +8,6 @@ struct Light {
 };
 
 // Phong Illumination values
-uniform vec4 ambient;
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -23,7 +22,12 @@ in vec3 V;
 // in for texture
 in vec2 uvTexCoord;
 
+// uut frag
 out vec4 fragColor;
+
+// structs
+uniform Material material;
+uniform Light light;
 
 void main () {
     vec3 nN = normalize(N);
@@ -34,11 +38,15 @@ void main () {
     vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));  
     vec3 specText = vec3(texture(material.specular, uvTexCoord));  
 
-    vec4 ambientColor = ambient;
-    vec4 diffuseColor = diffText * max(dot(nN, nL), 0.0);
-    vec4 specularColor = specText * pow(max(dot(R, nV),0.0),specExp);
+    vec3 ambientColor = light.ambient * diffText;
+    vec3 diffuseColor = light.lightIntensity * max(dot(nN, nL), 0.0) * diffText;
+    vec3 specularColor = light.lightIntensity * pow(max(dot(R, nV),0.0), material.specExp) * specText ;
     if(dot(nL, nN) < 0.0)
-        specularColor = vec4(0.0,0.0,0.0,1.0);
+        specularColor = vec3(0.0,0.0,0.0);
 
-    fragColor = vec4(ambientColor + diffuseColor + specularColor, 1.0);
+    fragColor = vec4(ambientColor + diffuseColor, 1.0);
+    //fragColor = vec4( 0.0, 1.0, 0.0, 1.0 );
+    //fragColor = vec4(ambientColor, 1.0);
+    //fragColor = vec4(diffuseColor, 1.0);
+    //fragColor = vec4(specularColor, 1.0);
 }

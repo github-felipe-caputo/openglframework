@@ -1,5 +1,5 @@
 CXX = 			g++
-CXXFLAGS = 		-I/usr/local/include -O2 -std=c++11
+CXXFLAGS = 		-I/usr/local/include -O2 -std=c++11 -w
 LDFLAGS =		-L/usr/local/lib
 LDLIBS =		-lGLEW -framework OpenGL -framework GLUT -lpng 
 

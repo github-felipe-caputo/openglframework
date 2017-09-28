@@ -209,15 +209,21 @@ void Lighting::setPhongIllumination(GLuint program,
  *         intensity
  *
  */
-void setPhongIllumination(GLuint program) {
+void Lighting::setPhongIllumination(GLuint program) {
     // TODO: fix these submissions, they are not correct
     // check how to send specExp
+
+    // Light pos initially on vertex shader
     GLuint lightPosID = glGetUniformLocation(program, "lightPos");
     glUniform3fv(lightPosID, 1, lightPosition);
 
-    GLuint ambientID = glGetUniformLocation(program, "ambient");
+    // To struct on frag shader 
+    GLuint lightMaterialPosID = glGetUniformLocation(program, "light.position");
+    glUniform3fv(lightMaterialPosID, 1, lightPosition);
+
+    GLuint ambientID = glGetUniformLocation(program, "light.ambient");
     glUniform3fv(ambientID, 1, ambientLight);
 
-    GLuint intensityID = glGetUniformLocation(program, "specular");
+    GLuint intensityID = glGetUniformLocation(program, "light.lightIntensity");
     glUniform3fv(intensityID, 1, lightIntensity);
 }
