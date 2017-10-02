@@ -526,7 +526,32 @@ public:
      */
     void readObjVertTexNorm ( char* filename, char* filetexture );
 
+    /*
+     * readObjLightMap
+     *
+     * INPUT:
+     *         filename - the .obj file you want to load
+     *         filetextureDiff - the texture file for diffuse map, .png extension
+     *         filetextureSpec - the texture file for specular map, .png extension
+     *
+     * DESCRIPTION:
+     *         Reads an obj file with vertex, normal and texture data, and also receives
+     *         texture files in png for diffuse and specular mapping.
+     *
+     */
     void readObjLightMap ( char* filename , char* filetextureDiff, char* filetextureSpec );
+
+    /*
+     * readNormalMap
+     *
+     * INPUT:
+     *         filetexture - the texture file, .png extension
+     *
+     * DESCRIPTION:
+     *         -----
+     *
+     */
+    void readNormalMap ( char* filetexture );
 
     /*
      * setUpTexture

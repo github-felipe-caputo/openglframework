@@ -1181,11 +1181,12 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
  *
  * INPUT:
  *         filename - the .obj file you want to load
- *         filetexture - the texture file, can be of any extension readable
- *                       by SOIL
+ *         filetextureDiff - the texture file for diffuse map, .png extension
+ *         filetextureSpec - the texture file for specular map, .png extension
  *
  * DESCRIPTION:
- *         -----
+ *         Reads an obj file with vertex, normal and texture data, and also receives
+ *         texture files in png for diffuse and specular mapping.
  *
  */
  void Shape::readObjLightMap ( char* filename , char* filetextureDiff, char* filetextureSpec ) {
@@ -1292,6 +1293,60 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     if( 0 == textureDiffMapID || 0 == textureSpecMapID ) {
         printf( "Error loading textures\n" );
     }
+}
+
+/*
+ * readNormalMap
+ *
+ * INPUT:
+ *         filetexture - the texture file, .png extension
+ *
+ * DESCRIPTION:
+ *         -----
+ *
+ */
+void Shape::readNormalMap ( char* filetexture ) {
+    // iterate through elements, every 3 elements is a triangle face
+    for( int i = 0; i < elements.size(); i+=3 ) {
+        int vecPos1 = elements[i]*3;
+        int texPos1 = elements[i]*2;
+        float pos1[] = { vertices[vecPos1], vertices[vecPos1+1] , vertices[vecPos1+2]};
+        float uv1[] = { uvtextures[texPos1], uvtextures[texPos1+1] };
+
+        int vecPos2 = elements[i+1]*3;
+        int texPos2 = elements[i+1]*2;
+        float pos2[] = { vertices[vecPos2], vertices[vecPos2+1] , vertices[vecPos2+2]};
+        float uv2[] = { uvtextures[texPos2], uvtextures[texPos2+1] };
+
+        int vecPos3 = elements[i+2]*3;
+        int texPos3 = elements[i+2]*2;
+        float pos3[] = { vertices[vecPos3], vertices[vecPos3+1] , vertices[vecPos3+2]};
+        float uv3[] = { uvtextures[texPos3], uvtextures[texPos3+1] };
+        
+        // Our actual values used for the canculations of tangent and bitangent
+        float edge1[] =  { pos2[0] -  pos1[0], pos2[1] -  pos1[1], pos2[2] -  pos1[2] };
+        float edge2[] =  { pos3[0] -  pos1[0], pos3[1] -  pos1[1], pos3[2] -  pos1[2] };
+        float deltaUV1[] =  { uv2[0] -  uv1[0], uv2[1] -  uv1[1] };
+        float deltaUV2[] =  { uv3[0] -  uv1[0], uv3[1] -  uv1[1] };
+
+        // Calculating it
+        float f = 1.0f / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1]);
+
+        float tangent[] = { 
+            f * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]),
+            f * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1]),
+            f * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2]) };
+        normalize(tangent);
+        
+        float bitangent[] = { 
+            f * (-deltaUV2[0] * edge1[0] + deltaUV1[0] * edge2[0]),
+            f * (-deltaUV2[0] * edge1[1] + deltaUV1[0] * edge2[1]),
+            f * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2]) }
+        normalize(bitangent);
+        
+
+    }
+
 }
 
 /*

@@ -44,7 +44,7 @@ void main () {
     if(dot(nL, nN) < 0.0)
         specularColor = vec3(0.0,0.0,0.0);
 
-    fragColor = vec4(ambientColor + diffuseColor, 1.0);
+    fragColor = vec4(ambientColor + diffuseColor + specularColor, 1.0);
     //fragColor = vec4( 0.0, 1.0, 0.0, 1.0 );
     //fragColor = vec4(ambientColor, 1.0);
     //fragColor = vec4(diffuseColor, 1.0);
