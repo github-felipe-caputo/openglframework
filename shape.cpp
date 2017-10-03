@@ -386,25 +386,36 @@ GLuint Shape::getNumUV() {
 }
 
 /*
-* getDiffTextureID
-*
-* RETURN:
-*         The ID of the diffuse texture map.
-*
-*/
+ * getDiffTextureID
+ *
+ * RETURN:
+ *         The ID of the diffuse texture map.
+ *
+ */
 GLuint Shape::getDiffTextureID(){
     return textureDiffMapID;
 }
      
 /*
-* getSpecTextureID
-*
-* RETURN:
-*         The ID of the specular texture map.
-*
-*/
+ * getSpecTextureID
+ *
+ * RETURN:
+ *         The ID of the specular texture map.
+ *
+ */
 GLuint Shape::getSpecTextureID(){
     return textureSpecMapID;
+}
+
+/*
+ * getTextureNormalMapID
+ *
+ * RETURN:
+ *         The ID of the normal texture map.
+ *
+ */
+GLuint Shape::getTextureNormalMapID(){
+    return textureNormalMapID;
 }
 
 /*
@@ -449,6 +460,50 @@ GLshort* Shape::getElements() {
  */
 GLuint Shape::getNumElements() {
     return numElements;
+}
+
+/*
+ * getTangents
+ *
+ * RETURN:
+ *         The vector/array of the tangents.
+ *
+ */
+float* Shape::getTangents() {
+    return &tangents[0];
+}
+
+/*
+ * getNumTangents
+ *
+ * RETURN:
+ *         The number of the tangents.
+ *
+ */
+GLuint Shape::getNumTangents() {
+    return numTangents;
+}
+
+/*
+ * getBitangents
+ *
+ * RETURN:
+ *         The vector/array of the bitangents.
+ *
+ */
+float* Shape::getBitangents() {
+    return &bitangents[0];
+}
+
+/*
+ * getNumBitangents
+ *
+ * RETURN:
+ *         The number of the bitangents.
+ *
+ */
+GLuint Shape::getNumBitangents() {
+    return numBitangents;
 }
 
 /*
@@ -1285,7 +1340,7 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
     numNormals = normals.size()/3;
     numElements = elements.size();
 
-    // Now, reading the texture using SOIL directly as a new OpenGL texture
+    // Now, reading the texture using libpng directly as a new OpenGL texture
     textureDiffMapID = load_png(filetextureDiff);
     textureSpecMapID = load_png(filetextureSpec);
 
@@ -1306,6 +1361,8 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
  *
  */
 void Shape::readNormalMap ( char* filetexture ) {
+    cout << "size " << elements.size() << endl;
+
     // iterate through elements, every 3 elements is a triangle face
     for( int i = 0; i < elements.size(); i+=3 ) {
         int vecPos1 = elements[i]*3;
@@ -1341,12 +1398,35 @@ void Shape::readNormalMap ( char* filetexture ) {
         float bitangent[] = { 
             f * (-deltaUV2[0] * edge1[0] + deltaUV1[0] * edge2[0]),
             f * (-deltaUV2[0] * edge1[1] + deltaUV1[0] * edge2[1]),
-            f * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2]) }
+            f * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2]) };
         normalize(bitangent);
         
+        // all three vertices from the triangle will share the same
+        // tangent and bitangent, so we add those values three times
 
+        cout << tangent[0] << " " << tangent[1] << " " << tangent[2] << endl;
+        cout << bitangent[0] << " " << bitangent[1] << " " << bitangent[2] << endl;
+
+        for (int j = 0; j < 3; ++j) {
+            tangents.push_back(tangent[0]);
+            tangents.push_back(tangent[1]);
+            tangents.push_back(tangent[2]);
+
+            bitangents.push_back(bitangent[0]);
+            bitangents.push_back(bitangent[1]);
+            bitangents.push_back(bitangent[2]);
+        }
     }
+    cout << "tan size " << tangents.size()/3 << endl;
+    numTangents = tangents.size()/3;
+    numBitangents = bitangents.size()/3;
 
+    textureNormalMapID = load_png(filetexture);
+
+    // check for an error during the load process
+    if( 0 == textureNormalMapID ) {
+        printf( "Error loading textures\n" );
+    }
 }
 
 /*

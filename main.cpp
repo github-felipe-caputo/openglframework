@@ -55,7 +55,7 @@ float zVec[] = {0,0,1};
 bool animatingX = false;
 bool animatingY = false;
 bool animatingZ = false;
-float xtheta = 30.0f;
+float xtheta = 60.0f;
 float ytheta = 30.0f;
 float ztheta = 30.0f;
 
@@ -65,20 +65,25 @@ void createShape() {
     //
     shape.clearShape();
     shape.readObjLightMap( "objects/BrickWall.obj" , "objects/Brick_RedNormal_1k_d.png", "objects/Brick_RedNormal_1k_g.png" );
+    shape.readNormalMap ( "objects/Brick_RedNormal_1k_n.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
     int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
     int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
+    int tanShapeDataSize = shape.getNumTangents()*3*sizeof(GLfloat);
+    int bitanShapeDataSize = shape.getNumBitangents()*3*sizeof(GLfloat);
     int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
     cout << vShapeDataSize << endl;
     cout << nShapeDataSize << endl;
     cout << uvShapeDataSize << endl;
+    cout << tanShapeDataSize << endl;
+    cout << bitanShapeDataSize << endl;
     cout << eShapeDataSize << endl;
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/phongLightingMapVert.glsl",
-                                         "shaders/phongLightingMapFrag.glsl" );
+    program = shader::makeShaderProgram( "shaders/phongNormalMapVert.glsl",
+                                         "shaders/phongNormalMapFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -89,11 +94,14 @@ void createShape() {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // This example, vertex data, normals and texture coordinates
-    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize, NULL, GL_STATIC_DRAW );
+    // This example, vertex data, normals, texture, tangent and bitangent values
+    // V / N / UV / T / B
+    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize + bitanShapeDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );
     glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize, uvShapeDataSize, shape.getUV() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize, tanShapeDataSize, shape.getTangents() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize, bitanShapeDataSize, shape.getBitangents() );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -124,6 +132,8 @@ void createShape() {
     GLuint vPosition;
     GLuint vNormal;
     GLuint vTexCoords;
+    GLuint vTangent;
+    GLuint vBitangent;
 
     glGenVertexArrays(1, &vaoShape);
 
@@ -143,6 +153,14 @@ void createShape() {
     glEnableVertexAttribArray( vTexCoords );
     glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize) );
 
+    vTangent = glGetAttribLocation( program , "vTangent" );
+    glEnableVertexAttribArray( vTangent );
+    glVertexAttribPointer( vTangent , 3 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize + uvShapeDataSize) );
+
+    vBitangent = glGetAttribLocation( program , "vBitangent" );
+    glEnableVertexAttribArray( vBitangent );
+    glVertexAttribPointer( vBitangent , 3 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize) );
+
     // set up textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, shape.getDiffTextureID());
@@ -150,10 +168,14 @@ void createShape() {
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, shape.getSpecTextureID());
 
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, shape.getTextureNormalMapID());
+
     cout << "=======" << endl;
 
     cout << shape.getDiffTextureID() << endl;
     cout << shape.getSpecTextureID() << endl;
+    cout << shape.getTextureNormalMapID() << endl;
 
     // Sending material data
 
@@ -163,7 +185,10 @@ void createShape() {
     GLuint textureSpecID = glGetUniformLocation(program, "material.specular");
     glUniform1i(textureSpecID, 1);
 
-    float specExp = 0.1f;
+    GLuint textureNormalID = glGetUniformLocation(program, "material.normal");
+    glUniform1i(textureNormalID, 1);
+
+    float specExp = 10.0f;
     GLuint specExpID = glGetUniformLocation(program, "material.specExp");
     glUniform1f(specExpID, specExp);
 
@@ -198,7 +223,7 @@ void display () {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Set up the transforms
-    Matrix mTransform = translate(0,0,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    Matrix mTransform = translate(0,0.5f,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
@@ -211,7 +236,6 @@ void display () {
     Matrix mProjMatrix = cam.getProjMatrix();
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
-
 
     //
     // Binding the shape, transforms, etc

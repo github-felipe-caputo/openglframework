@@ -55,6 +55,7 @@ class Shape {
     GLuint textureID;
     GLuint textureDiffMapID;
     GLuint textureSpecMapID;
+    GLuint textureNormalMapID;
 
     // the normals each shape vertex, and the number of normals
     vector<float> normals;
@@ -63,6 +64,14 @@ class Shape {
     // the element vector of the shape, and the number of elements
     vector<GLshort> elements;
     GLuint numElements;
+
+    // the tangent vector of each shape vertex, and the number of tangent vertices
+    vector<float> tangents;
+    GLuint numTangents;
+
+    // the bitangent vector of each shape vertex, and the number of bitangent vertices
+    vector<float> bitangents;
+    GLuint numBitangents;
 
     // values for lighting materials
     vector<float> ambientMaterial;
@@ -287,6 +296,15 @@ public:
     GLuint getSpecTextureID();
 
     /*
+    * getTextureNormalMapID
+    *
+    * RETURN:
+    *         The ID of the normal texture map.
+    *
+    */
+    GLuint getTextureNormalMapID();
+
+    /*
      * getNormals
      *
      * RETURN:
@@ -321,6 +339,42 @@ public:
      *
      */
     GLuint getNumElements();
+
+    /*
+    * getTangents
+    *
+    * RETURN:
+    *         The vector/array of the tangents.
+    *
+    */
+    float* getTangents();
+
+    /*
+    * getNumTangents
+    *
+    * RETURN:
+    *         The number of the tangents.
+    *
+    */
+    GLuint getNumTangents();
+
+    /*
+    * getBitangents
+    *
+    * RETURN:
+    *         The vector/array of the bitangents.
+    *
+    */
+    float* getBitangents();
+
+    /*
+    * getNumBitangents
+    *
+    * RETURN:
+    *         The number of the bitangents.
+    *
+    */
+    GLuint getNumBitangents();
 
     /*
      * setMaterials
