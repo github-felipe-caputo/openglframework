@@ -34,21 +34,21 @@ uniform Light light;
 
 void main () {
     // Use normalMap values and TBN matrix to calculate the normal
-    vec3 normal = texture(material.normal, uvTexCoord).rgb;
-    normal = normalize(normal * 2.0 - 1.0);   
-    normal = normalize(TBN * normal); 
+    vec3 norm = vec3(texture(material.normal, uvTexCoord));
+    norm = normalize(norm * 2.0 - 1.0);
+    norm = normalize(TBN * norm); 
 
     vec3 nL = normalize(L);
     vec3 nV = normalize(V);
-    vec3 R = reflect(-nL,normal);
+    vec3 R = reflect(-nL,norm);
 
     vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));  
     vec3 specText = vec3(texture(material.specular, uvTexCoord));  
 
     vec3 ambientColor = light.ambient * diffText;
-    vec3 diffuseColor = light.lightIntensity * max(dot(normal, nL), 0.0) * diffText;
+    vec3 diffuseColor = light.lightIntensity * max(dot(norm, nL), 0.0) * diffText;
     vec3 specularColor = light.lightIntensity * pow(max(dot(R, nV),0.0), material.specExp) * specText ;
-    if(dot(nL, normal) < 0.0)
+    if(dot(nL, norm) < 0.0)
         specularColor = vec3(0.0,0.0,0.0);
 
     fragColor = vec4(ambientColor + diffuseColor + specularColor, 1.0);

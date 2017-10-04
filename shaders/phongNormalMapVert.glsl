@@ -33,10 +33,10 @@ void main () {
     uvTexCoord = vTexCoord;
 
     // TBN matrix for normal mapping
-    vec3 T = normalize(vec3(modelView * vec4(vTangent, 1.0)));
-    vec3 B = normalize(vec3(modelView * vec4(vBitangent, 1.0)));
-    vec3 N = normalize(vec3(modelView * vec4(vNormal, 1.0)));
-    mat3 TBN = mat3(T, B, N);
+    vec3 T = normalize(vec3(modelView * vec4(vTangent, 0.0)));
+    vec3 B = normalize(vec3(modelView * vec4(vBitangent, 0.0)));
+    vec3 N = normalize(vec3(modelView * vec4(vNormal, 0.0)));
+    TBN = mat3(T, B, N);
 
     //
     // Illumination

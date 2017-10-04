@@ -1361,7 +1361,9 @@ void Shape::readObjVertTexNorm ( char* filename , char* filetexture ) {
  *
  */
 void Shape::readNormalMap ( char* filetexture ) {
-    cout << "size " << elements.size() << endl;
+    // bitangent and tangent will have the same size as the shape's vectices
+    tangents.resize(vertices.size());
+    bitangents.resize(vertices.size());
 
     // iterate through elements, every 3 elements is a triangle face
     for( int i = 0; i < elements.size(); i+=3 ) {
@@ -1403,21 +1405,31 @@ void Shape::readNormalMap ( char* filetexture ) {
         
         // all three vertices from the triangle will share the same
         // tangent and bitangent, so we add those values three times
-
-        cout << tangent[0] << " " << tangent[1] << " " << tangent[2] << endl;
-        cout << bitangent[0] << " " << bitangent[1] << " " << bitangent[2] << endl;
-
         for (int j = 0; j < 3; ++j) {
-            tangents.push_back(tangent[0]);
-            tangents.push_back(tangent[1]);
-            tangents.push_back(tangent[2]);
+            // if element = 0, index used will be 0, 1, 2
+            // if element = 1, index used will be 3, 4, 5
 
-            bitangents.push_back(bitangent[0]);
-            bitangents.push_back(bitangent[1]);
-            bitangents.push_back(bitangent[2]);
+            // TODO: might have an issue here when vertices are shared
+            // I believe it should actually average the values to be sure
+            // this way it will simply overwrite the old values
+
+            int index = elements[i+j]*3;
+            cout << "index " << index << endl;
+            cout << tangent[0] << " " << tangent[1] << " " << tangent[2] << endl;
+            cout << bitangent[0] << " " << bitangent[1] << " " << bitangent[2] << endl;
+
+            tangents[index] = tangent[0];
+            tangents[index+1] = tangent[1];
+            tangents[index+2] = tangent[2];
+
+            bitangents[index] = bitangent[0];
+            bitangents[index+1] = bitangent[1];
+            bitangents[index+2] = bitangent[2];
+
         }
     }
     cout << "tan size " << tangents.size()/3 << endl;
+    cout << "bitan size " << bitangents.size()/3 << endl;
     numTangents = tangents.size()/3;
     numBitangents = bitangents.size()/3;
 
