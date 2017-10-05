@@ -186,7 +186,7 @@ void createShape() {
     glUniform1i(textureSpecID, 1);
 
     GLuint textureNormalID = glGetUniformLocation(program, "material.normal");
-    glUniform1i(textureNormalID, 1);
+    glUniform1i(textureNormalID, 2);
 
     float specExp = 10.0f;
     GLuint specExpID = glGetUniformLocation(program, "material.specExp");
@@ -198,8 +198,8 @@ void createShape() {
     //
     // Illumination BLOW UP
     //
-    Lighting light(0.0f, 3.0f, -5.0f,
-        1.0f, 1.0f,  1.0f,
+    Lighting light(0.0f, 3.0f, -1.0f,
+        0.5f, 0.5f,  0.5f,
         0.5f, 0.5f,  0.5f);
 
     light.setPhongIllumination(program);
@@ -223,7 +223,7 @@ void display () {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Set up the transforms
-    Matrix mTransform = translate(0,0.5f,-5) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    Matrix mTransform = translate(0,0.5f,-2.0f) * rotate(0, zVec) * rotate(0, yVec) * rotate(90.0f, xVec);
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
