@@ -1,8 +1,13 @@
 
 // OpenGL stuff
+#ifdef __APPLE__
+#include <GLUT/GLUT.h>
+#include <OpenGL/gl3.h>
+#else
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/gl.h>
+#endif
 
 // C libraries
 #include <iostream>
@@ -12,7 +17,7 @@
 #include "mathHelper.h"
 
 // Classes
-#include "shape.h"      
+#include "shape.h"
 #include "camera.h"
 #include "lighting.h"
 
@@ -63,13 +68,13 @@ float ztheta = 0.0f;
 
 void init () {
     //
-    // SHAPES   
+    // SHAPES
     //
 
     // First: cube
     cube.makeCube(3);
-    cube.setMaterials(0.5f, 0.1f, 0.9f, 0.5f, 
-                      0.89f, 0.0f, 0.0f, 0.7f, 
+    cube.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
+                      0.89f, 0.0f, 0.0f, 0.7f,
                       1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
     int vCubeDataSize = cube.getNumVertices()*3*sizeof(GLfloat);
@@ -80,8 +85,8 @@ void init () {
 
     // Second: sphere
     sphere.makeSphere(3, SMOOTH);
-    sphere.setMaterials(0.1f, 0.5f, 0.9f, 0.5f, 
-                        0.0f, 0.0f, 0.5f, 0.9f, 
+    sphere.setMaterials(0.1f, 0.5f, 0.9f, 0.5f,
+                        0.0f, 0.0f, 0.5f, 0.9f,
                         1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
     int vSphereDataSize = sphere.getNumVertices()*3*sizeof(GLfloat);
@@ -92,8 +97,8 @@ void init () {
 
     // Third: Cylinder
     cylinder.makeCylinder(16,5, SMOOTH);
-    cylinder.setMaterials(0.5f, 0.9f, 0.2f, 0.5f, 
-                          0.0f, 1.0f, 0.5f, 0.6f, 
+    cylinder.setMaterials(0.5f, 0.9f, 0.2f, 0.5f,
+                          0.0f, 1.0f, 0.5f, 0.6f,
                           1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
     int vCylinderDataSize = cylinder.getNumVertices()*3*sizeof(GLfloat);
@@ -103,7 +108,7 @@ void init () {
     int totalCylinderDataSize = vCylinderDataSize + nCylinderDataSize;
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl", 
+    program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
                                          "shaders/phongLightingFrag.glsl" );
 
     //
@@ -115,11 +120,11 @@ void init () {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // Data looks like 
+    // Data looks like
     //    shape 1        shape 2
     // (VVVV) (NNNN) | (VVVV) (NNNN) | ...
-    glBufferData( GL_ARRAY_BUFFER, totalCubeDataSize + 
-                                   totalSphereDataSize + 
+    glBufferData( GL_ARRAY_BUFFER, totalCubeDataSize +
+                                   totalSphereDataSize +
                                    totalCylinderDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vCubeDataSize, cube.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, vCubeDataSize, nCubeDataSize, cube.getNormals() );
@@ -221,7 +226,7 @@ void init () {
 }
 
 void display () {
-    // clear 
+    // clear
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 
@@ -311,31 +316,31 @@ void display () {
 // to use the keyboard
 void keyboard( unsigned char key, int x, int y ) {
     switch( key ) {
-        case 'w':                      
+        case 'w':
             cam.moveForward();
             break;
-        case 's':                      
+        case 's':
             cam.moveBackward();
             break;
-        case 'd':                      
+        case 'd':
             cam.strafeRight();
             break;
-        case 'a':                      
+        case 'a':
             cam.strafeLeft();
             break;
-        case 'r':                      
+        case 'r':
             cam.moveUp();
             break;
-        case 'f':                      
+        case 'f':
             cam.moveDown();
             break;
-        case 'j':                      
+        case 'j':
             animatingX = !animatingX;
             break;
-        case 'k':                      
+        case 'k':
             animatingY = !animatingY;
             break;
-        case 'l':                      
+        case 'l':
             animatingZ = !animatingZ;
             break;
         case 033: case 'q': case 'Q':  // terminate the program
@@ -375,11 +380,11 @@ void mouseMovementEvent( int x, int y ) {
 
 
 int main ( int argc, char **argv ) {
-    // initialize glut 
+    // initialize glut
     glutInit(&argc, argv);
 
     // memory buffers
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 
     //set window size
     glutInitWindowSize(512, 512);
@@ -387,12 +392,16 @@ int main ( int argc, char **argv ) {
     // window
     glutCreateWindow( "OpenGL Framework" );
 
+    #ifndef __APPLE__
     // Try to initalize glew to use gl apis
     GLenum err = glewInit();
     if (GLEW_OK != err) {
         fprintf(stderr, "GLEW error");
         return 1;
     }
+    #endif
+
+    std::printf("%s\n%s\n", glGetString(GL_RENDERER),  glGetString(GL_VERSION));
 
     init();
 
