@@ -30,18 +30,28 @@ using namespace std;
 GLuint program;
 
 // Shapes we will use
-Shape shape;
+Shape cube;
+Shape sphere;
+Shape cylinder;
 
 // BUFFERS
-bool bufferInit = false;
-
 GLuint vbuffer;
 GLuint ebuffer;
 
-GLuint vaoShape;
+GLuint vaoCube;
+GLuint vaoSphere;
+GLuint vaoCylinder;
+
+GLuint framebuffer;
+GLuint renderbuffer;
+
+GLuint sphereElementByteOffset; // used on the draw
+GLuint cylinderElementByteOffset; // used on the draw
 
 // Total number of elements that will be draw
-int shapeNumElements;
+int cubeNumElements;
+int sphereNumElements;
+int cylinderNumElements;
 
 // Our Camera
 Camera cam(PROJ_PERSP);
@@ -55,28 +65,54 @@ float zVec[] = {0,0,1};
 bool animatingX = false;
 bool animatingY = false;
 bool animatingZ = false;
-float xtheta = 60.0f;
-float ytheta = 30.0f;
-float ztheta = 30.0f;
+float xtheta = 0.0f;
+float ytheta = 0.0f;
+float ztheta = 0.0f;
 
-void createShape() {
+void init () {
     //
-    // SHAPE
+    // SHAPES
     //
-    shape.clearShape();
-    shape.readObjLightMap( "objects/BrickWall.obj" , "objects/Brick_RedNormal_1k_d.png", "objects/Brick_RedNormal_1k_g.png" );
-    shape.readNormalMap ( "objects/Brick_RedNormal_1k_n.png" );
 
-    int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
-    int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
-    int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
-    int tanShapeDataSize = shape.getNumTangents()*3*sizeof(GLfloat);
-    int bitanShapeDataSize = shape.getNumBitangents()*3*sizeof(GLfloat);
-    int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
+    // First: cube
+    cube.makeCube(3);
+    cube.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
+                      0.89f, 0.0f, 0.0f, 0.7f,
+                      1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
+
+    int vCubeDataSize = cube.getNumVertices()*3*sizeof(GLfloat);
+    int nCubeDataSize = cube.getNumNormals()*3*sizeof(GLfloat);
+    int eCubeDataSize = cube.getNumElements()*sizeof(GLshort);
+
+    int totalCubeDataSize = vCubeDataSize + nCubeDataSize;
+
+    // Second: sphere
+    sphere.makeSphere(3, SMOOTH);
+    sphere.setMaterials(0.1f, 0.5f, 0.9f, 0.5f,
+                        0.0f, 0.0f, 0.5f, 0.9f,
+                        1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
+
+    int vSphereDataSize = sphere.getNumVertices()*3*sizeof(GLfloat);
+    int nSphereDataSize = sphere.getNumNormals()*3*sizeof(GLfloat);
+    int eSphereDataSize = sphere.getNumElements()*sizeof(GLshort);
+
+    int totalSphereDataSize = vSphereDataSize + nSphereDataSize;
+
+    // Third: Cylinder
+    cylinder.makeCylinder(16,5, SMOOTH);
+    cylinder.setMaterials(0.5f, 0.9f, 0.2f, 0.5f,
+                          0.0f, 1.0f, 0.5f, 0.6f,
+                          1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
+
+    int vCylinderDataSize = cylinder.getNumVertices()*3*sizeof(GLfloat);
+    int nCylinderDataSize = cylinder.getNumNormals()*3*sizeof(GLfloat);
+    int eCylinderDataSize = cylinder.getNumElements()*sizeof(GLshort);
+
+    int totalCylinderDataSize = vCylinderDataSize + nCylinderDataSize;
 
     // Load shaders
-    program = shader::makeShaderProgram( "shaders/phongNormalMapVert.glsl",
-                                         "shaders/phongNormalMapFrag.glsl" );
+    program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
+                                         "shaders/phongLightingFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -87,14 +123,18 @@ void createShape() {
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // Create space for the data, load the data
-    // This example, vertex data, normals, texture, tangent and bitangent values
-    // V / N / UV / T / B
-    glBufferData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize + bitanShapeDataSize, NULL, GL_STATIC_DRAW );
-    glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize, uvShapeDataSize, shape.getUV() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize, tanShapeDataSize, shape.getTangents() );
-    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize, bitanShapeDataSize, shape.getBitangents() );
+    // Data looks like
+    //    shape 1        shape 2
+    // (VVVV) (NNNN) | (VVVV) (NNNN) | ...
+    glBufferData( GL_ARRAY_BUFFER, totalCubeDataSize +
+                                   totalSphereDataSize +
+                                   totalCylinderDataSize, NULL, GL_STATIC_DRAW );
+    glBufferSubData( GL_ARRAY_BUFFER, 0, vCubeDataSize, cube.getVertices() );
+    glBufferSubData( GL_ARRAY_BUFFER, vCubeDataSize, nCubeDataSize, cube.getNormals() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize, vSphereDataSize, sphere.getVertices() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + vSphereDataSize, nSphereDataSize, sphere.getNormals() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize, vCylinderDataSize, cylinder.getVertices() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + vCylinderDataSize, nCylinderDataSize, cylinder.getNormals() );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -105,10 +145,24 @@ void createShape() {
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
     // Create space for the data, load the data
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eShapeDataSize, NULL, GL_STATIC_DRAW );
-    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, 0, eShapeDataSize, shape.getElements() );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize + eCylinderDataSize, NULL, GL_STATIC_DRAW );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, 0, eCubeDataSize, cube.getElements() );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize, eSphereDataSize, sphere.getElements() );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize, eCylinderDataSize, cylinder.getElements() );
 
-    shapeNumElements = shape.getNumElements();
+    cubeNumElements = cube.getNumElements();
+
+    sphereNumElements = sphere.getNumElements();
+    sphereElementByteOffset = eCubeDataSize; // sphere starts after cube
+
+    cylinderNumElements = cylinder.getNumElements();
+    cylinderElementByteOffset = eCubeDataSize + eSphereDataSize; // cylinder starts after cube and sphere
+
+    // Some openGL initialization
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE );
+    glClearColor( 0.0, 0.0, 0.0, 1.0 );
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // This shows just the lines
 
     //
     // SETTING UP THE SHADER
@@ -124,14 +178,13 @@ void createShape() {
     // Setting up vertex array object
     GLuint vPosition;
     GLuint vNormal;
-    GLuint vTexCoords;
-    GLuint vTangent;
-    GLuint vBitangent;
 
-    glGenVertexArrays(1, &vaoShape);
+    glGenVertexArrays(1, &vaoCube);
+    glGenVertexArrays(1, &vaoSphere);
+    glGenVertexArrays(1, &vaoCylinder);
 
-    // Shape
-    glBindVertexArray(vaoShape);
+    // Cube
+    glBindVertexArray(vaoCube);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     vPosition = glGetAttribLocation( program , "vPosition" );
@@ -140,79 +193,76 @@ void createShape() {
 
     vNormal = glGetAttribLocation( program, "vNormal" );
     glEnableVertexAttribArray( vNormal );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
-
-    vTexCoords = glGetAttribLocation( program , "vTexCoord" );
-    glEnableVertexAttribArray( vTexCoords );
-    glVertexAttribPointer( vTexCoords , 2 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize) );
-
-    vTangent = glGetAttribLocation( program , "vTangent" );
-    glEnableVertexAttribArray( vTangent );
-    glVertexAttribPointer( vTangent , 3 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize + uvShapeDataSize) );
-
-    vBitangent = glGetAttribLocation( program , "vBitangent" );
-    glEnableVertexAttribArray( vBitangent );
-    glVertexAttribPointer( vBitangent , 3 , GL_FLOAT , GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize + uvShapeDataSize + tanShapeDataSize) );
-
-    // set up textures
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, shape.getDiffTextureID());
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, shape.getSpecTextureID());
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, shape.getTextureNormalMapID());
-
-    // Sending material data
-
-    GLuint textureDiffID = glGetUniformLocation(program, "material.diffuse");
-    glUniform1i(textureDiffID, 0);
-
-    GLuint textureSpecID = glGetUniformLocation(program, "material.specular");
-    glUniform1i(textureSpecID, 1);
-
-    GLuint textureNormalID = glGetUniformLocation(program, "material.normal");
-    glUniform1i(textureNormalID, 2);
-
-    float specExp = 10.0f;
-    GLuint specExpID = glGetUniformLocation(program, "material.specExp");
-    glUniform1f(specExpID, specExp);
-
-
-    // Sending light data
-
-    //
-    // Illumination BLOW UP
-    //
-    Lighting light(0.0f, 3.0f, -1.0f,
-        0.5f, 0.5f,  0.5f,
-        0.5f, 0.5f,  0.5f);
-
-    light.setPhongIllumination(program);
+    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vCubeDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
-}
 
-void init () {
-    // Create the shapes
-    createShape();
+    // Sphere
+    glBindVertexArray(vaoSphere);
+    glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    // Some openGL initialization
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-    glCullFace( GL_BACK );
-    glClearColor( 0.0, 0.0, 0.0, 1.0 );
+    vPosition = glGetAttribLocation( program , "vPosition" );
+    glEnableVertexAttribArray( vPosition );
+    glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize) );
+
+    vNormal = glGetAttribLocation( program, "vNormal" );
+    glEnableVertexAttribArray( vNormal );
+    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + vSphereDataSize) );
+
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
+
+    // Cylinder
+    glBindVertexArray(vaoCylinder);
+    glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
+
+    vPosition = glGetAttribLocation( program , "vPosition" );
+    glEnableVertexAttribArray( vPosition );
+    glVertexAttribPointer( vPosition, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize) );
+
+    vNormal = glGetAttribLocation( program, "vNormal" );
+    glEnableVertexAttribArray( vNormal );
+    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + vCylinderDataSize) );
+
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
+
+    //
+    // FRAMEBUFFER OBJECTS
+    //
+
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    GLuint texColorBuffer;
+    glGenTextures(1, &texColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+
+    //
+    // RENDERBUFFER OBJECTS
+    //
+
+    glGenRenderbuffers(1, &renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 512, 512);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::printf("ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n");
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void display () {
     // clear
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    // Set up the transforms
-    Matrix mTransform = translate(0,0.5f,-2.0f) * rotate(0, zVec) * rotate(0, yVec) * rotate(90.0f, xVec);
+    // Transform will be different for the objects, for now just set it up
+    Matrix mTransform;
     GLuint mTransformID = glGetUniformLocation(program, "mTransform");
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
     // View matrix will be the same for all the objects, just send it now
     Matrix mViewMatrix = cam.getViewMatrix();
@@ -224,13 +274,70 @@ void display () {
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
 
+
     //
-    // Binding the shape, transforms, etc
+    // Illumination BLOW UP
     //
-    glBindVertexArray(vaoShape);
+
+    Lighting light(2.0f, 2.0f, -4.0f,
+                   1.0f, 1.0f,  1.0f,
+                   0.5f, 0.5f,  0.5f);
+
+    //
+    // First the cube
+    //
+
+    glBindVertexArray(vaoCube);
+
+    light.setPhongIllumination(program, cube);
+
+    mTransform = translate(-1,-0.9,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
     // Drawing elements
-    glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+
+    //
+    // Now the sphere
+    //
+
+    glBindVertexArray(vaoSphere);
+
+    light.setPhongIllumination(program, sphere);
+
+    mTransform = translate(1,-0.9,-4) * scale(0.5,0.5,0.5) * rotate(ztheta, zVec) *  rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
+
+    // Drawing elements
+    glDrawElements( GL_TRIANGLES, sphereNumElements, GL_UNSIGNED_SHORT, (void*)sphereElementByteOffset);
+
+    //
+    // Another the cube
+    //
+
+    glBindVertexArray(vaoCube);
+
+    light.setPhongIllumination(program, cube);
+
+    mTransform = translate(1,1.1,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
+
+    // Drawing elements
+    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+
+    //
+    // Finally the cylinder
+    //
+
+    glBindVertexArray(vaoCylinder);
+
+    light.setPhongIllumination(program, cylinder);
+
+    mTransform = translate(-1,1.1,-4) * rotate(ztheta, zVec) *  rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
+
+    // Drawing elements
+    glDrawElements( GL_TRIANGLES, cylinderNumElements, GL_UNSIGNED_SHORT, (void*)cylinderElementByteOffset);
 
     // swap the buffers
     glutSwapBuffers();
@@ -239,7 +346,6 @@ void display () {
 // to use the keyboard
 void keyboard( unsigned char key, int x, int y ) {
     switch( key ) {
-        // Camera
         case 'w':
             cam.moveForward();
             break;
@@ -258,7 +364,6 @@ void keyboard( unsigned char key, int x, int y ) {
         case 'f':
             cam.moveDown();
             break;
-        // Animation
         case 'j':
             animatingX = !animatingX;
             break;
