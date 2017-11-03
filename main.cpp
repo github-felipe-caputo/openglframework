@@ -256,6 +256,11 @@ void init () {
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
+    // Wireframe test
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void prepareFramebuffers () {
     //
     // FRAMEBUFFER OBJECTS
     //
@@ -282,9 +287,6 @@ void init () {
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::printf("Error building Framebuffer!\n");
     }
-
-    // Wireframe test
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void display () {
@@ -494,6 +496,7 @@ int main ( int argc, char **argv ) {
     std::printf("%s\n%s\n", glGetString(GL_RENDERER),  glGetString(GL_VERSION));
 
     init();
+    prepareFramebuffers();
 
     glutDisplayFunc( display );
     glutKeyboardFunc( keyboard );
