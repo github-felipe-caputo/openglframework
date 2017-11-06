@@ -17,6 +17,118 @@
 // Typedef to help us use the cmatrix lib
 typedef techsoft::matrix<float> Matrix;
 
+// We use a "vector" (actually a matrix with 4 row and 1 col) to help us
+// deal with some transformation to "move" the camera, taking advantage
+// of the cmatrix lib. Since those vectors will go through transformations,
+// they are in homogeneous coordinates (1.0f on the last coordinate)
+typedef techsoft::matrix<float> Vector4;
+typedef techsoft::matrix<float> Matrix4;
+
+/*
+* makeViewMatrix
+*
+* INPUT:
+*         eyePoint - position of the eye/camera.
+*         lookAt - where the camera is looking at.
+*         up - "up" vector of the camera.
+*
+* RETURN:
+*         The view matrix.
+*
+* DESCRIPTION:
+*         This function is responsible for creating a
+*         a view matrix given the basic values of the camera.
+*
+*/
+Matrix4 makeViewMatrix( Vector4 newEyePoint, Vector4 newLookAt, Vector4 newUp );
+
+/*
+ * makeViewMatrix
+ *
+ * INPUT:
+ *         eyePoint - position of the eye/camera, float[3].
+ *         lookAt - where the camera is looking at, float[3].
+ *         up - "up" vector of the camera, float[3].
+ *
+ * RETURN:
+ *         The view matrix.
+ *
+ * DESCRIPTION:
+ *         This function is responsible for creating a
+ *         a view matrix given the basic values of the camera.
+ *
+ */
+Matrix4 makeViewMatrix( float newEyePoint[], float newLookAt[], float newUp[] );
+
+/*
+* makeOrthographicMatrix
+*
+* INPUT:
+*         l - left limit of the projection volume.
+*         r - right limit of the projection volume.
+*         b - bottom limit of the projection volume.
+*         t - top limit of the projection volume.
+*         n - near limit of the projection volume.
+*         f - far limit of the projection volume.
+*
+* RETURN:
+*         The orthographic projection matrix.
+*
+* DESCRIPTION:
+*         This function is responsible for creating a
+*         a viewing volume matrix (the projection matrix),
+*         in specific this function creates an orthographic
+*         projection matrix.
+*
+*/
+Matrix4 makeOrthographicMatrix ( float l, float r, float b, float t, float n, float f );
+
+/*
+* makePerspectiveMatrix
+*
+* INPUT:
+*         fov - the field of view of the whole projection volume.
+*         w - the width of the projection volume.
+*         h - the height limit of the projection volume.
+*         zn - near limit of the projection volume.
+*         zf - far limit of the projection volume.
+*
+* RETURN:
+*         The perspective projection matrix.
+*
+* DESCRIPTION:
+*         This function is responsible for creating a
+*         a viewing volume matrix (the projection matrix),
+*         in specific this function creates an perspective
+*         projection matrix.
+*
+*/
+Matrix4 makePerspectiveMatrix ( float fov, float w, float h, float zn, float zf );
+
+/*
+* makePerspectiveMatrix2
+*
+* INPUT:
+*         l - left limit of the projection volume.
+*         r - right limit of the projection volume.
+*         b - bottom limit of the projection volume.
+*         t - top limit of the projection volume.
+*         n - near limit of the projection volume.
+*         f - far limit of the projection volume.
+*
+* RETURN:
+*         The perspective projection matrix.
+*
+* DESCRIPTION:
+*         This function is responsible for creating a
+*         a viewing volume matrix (the projection matrix),
+*         in specific this function creates an perspective
+*         projection matrix. It's a different version to calculate
+*         this matrix.
+*
+*/
+Matrix4 makePerspectiveMatrix2 ( float l, float r, float b, float t, float n, float f );
+
 /*
  * translate
  *
