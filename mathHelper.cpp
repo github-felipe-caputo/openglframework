@@ -98,7 +98,7 @@ Matrix4 makeViewMatrix( float newEyePoint[], float newLookAt[], float newUp[] ) 
     float viewMat[] = {u[0], u[1], u[2], -1*dotProduct(u, newEyePoint),
                        v[0], v[1], v[2], -1*dotProduct(v, newEyePoint),
                        n[0], n[1], n[2], -1*dotProduct(n, newEyePoint),
-                       0.0f, 0.0f, 0.0f,                            1.0f};
+                       0.0f, 0.0f, 0.0f,                          1.0f};
 
     Matrix4 worldToCamera(4,4,viewMat);
     return worldToCamera;

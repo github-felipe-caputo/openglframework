@@ -24,6 +24,9 @@
 #include "camera.h"
 #include "lighting.h"
 
+// funcs
+void renderScene(const GLuint &targetProgram);
+
 using namespace std;
 
 // How to calculate an offset into the vertex buffer
@@ -32,6 +35,7 @@ using namespace std;
 // PROGRAM ID
 GLuint program;
 GLuint programScreen;
+GLuint programDepthMap;
 
 // Shapes we will use
 Shape cube;
@@ -47,10 +51,11 @@ GLuint vaoSphere;
 GLuint vaoCylinder;
 GLuint vaoScreenQuad;
 
-GLuint framebuffer;
-GLuint renderbuffer;
+GLuint colorFBO;
+GLuint depthMapFBO;
 
 GLuint texColorBuffer; // screen quad buffer
+GLuint texDepthBuffer; // screen quad buffer
 
 GLuint sphereElementByteOffset; // used on the draw
 GLuint cylinderElementByteOffset; // used on the draw
@@ -131,6 +136,8 @@ void init () {
                                          "shaders/phongLightingFrag.glsl" );
     programScreen = shader::makeShaderProgram( "shaders/framebufferScreenVert.glsl",
                                                "shaders/framebufferScreenFrag.glsl" );
+    programDepthMap = shader::makeShaderProgram( "shaders/shadowMappingDepthVert.glsl",
+                                                 "shaders/shadowMappingDepthFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -258,6 +265,9 @@ void init () {
 
     // Wireframe test
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glEnable( GL_DEPTH_TEST );
+    // glEnable( GL_CULL_FACE );
 }
 
 void prepareFramebuffers () {
@@ -265,8 +275,8 @@ void prepareFramebuffers () {
     // FRAMEBUFFER OBJECTS
     //
 
-    glGenFramebuffers(1, &framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glGenFramebuffers(1, &colorFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, colorFBO);
 
     glGenTextures(1, &texColorBuffer);
     glBindTexture(GL_TEXTURE_2D, texColorBuffer);
@@ -275,28 +285,65 @@ void prepareFramebuffers () {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
-    //
-    // RENDERBUFFER OBJECTS
-    //
+    // DEPTH BUFFER OBJECT
 
-    glGenRenderbuffers(1, &renderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 512, 512);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+    glGenFramebuffers(1, &depthMapFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+
+    glGenTextures(1, &texDepthBuffer);
+    glBindTexture(GL_TEXTURE_2D, texDepthBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 512, 512, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texDepthBuffer, 0);
+    //glDrawBuffer(GL_NONE);
+    //glReadBuffer(GL_NONE);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::printf("Error building Framebuffer!\n");
     }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void display () {
+    float lightPos[] = { 2.0f, 2.0f, -4.0f };
+    float lightDir[] = { 20.0f, 0.0f,  0.0f };
+    float lightUp[] = { 0.0f, 1.0f,  0.0f };
+
+    Matrix mViewMatrix, mProjMatrix;
+    GLuint mViewMatrixID, mProjMatrixID;
+
+    //
+    // Render to depth map, from light point of view
+    //
+/*
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram( programDepthMap );
+
+    // Same position as light, "looking" at the center
+    mViewMatrix = makeViewMatrix(lightPos, lightDir, lightUp);
+    mViewMatrixID = glGetUniformLocation(programDepthMap, "mViewMatrix");
+    glUniformMatrix4fv(mViewMatrixID, 1, GL_TRUE, &mViewMatrix[0][0]);
+
+    // View matrix for the light will be ortho
+    mProjMatrix = makeOrthographicMatrix( -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 10.0f );
+    mProjMatrixID = glGetUniformLocation(programDepthMap, "mProjMatrix");
+    glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
+
+    renderScene( programDepthMap );
+*/
     //
     // Normal render, to framebuffer
     //
 
     // Bind texture framebuffer, render as you would normally
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    glEnable( GL_DEPTH_TEST );
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glEnable( GL_DEPTH_TEST );
 
     // clear framebuffer content
     glClearColor( 0.0, 0.0, 0.0, 1.0 );
@@ -305,19 +352,46 @@ void display () {
     // Use our "normal" shaders to render the scene
     glUseProgram( program );
 
-    // Transform will be different for the objects, for now just set it up
-    Matrix mTransform;
-    GLuint mTransformID = glGetUniformLocation(program, "mTransform");
-
     // View matrix will be the same for all the objects, just send it now
-    Matrix mViewMatrix = cam.getViewMatrix();
-    GLuint mViewMatrixID = glGetUniformLocation(program, "mViewMatrix");
+    mViewMatrix = cam.getViewMatrix();
+    mViewMatrixID = glGetUniformLocation(program, "mViewMatrix");
     glUniformMatrix4fv(mViewMatrixID, 1, GL_TRUE, &mViewMatrix[0][0]);
 
     // View matrix will be the same for all the objects, just send it now
-    Matrix mProjMatrix = cam.getProjMatrix();
-    GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
+    mProjMatrix = cam.getProjMatrix();
+    mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
+
+    renderScene( program );
+/*
+    //
+    // Render screen quad, defuault framebuffer
+    //
+
+    // Now back to default framebuffer and render to screen quad
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, 512, 512);
+    glDisable(GL_DEPTH_TEST); // disable depth test on screen-space quad
+
+    glClearColor( 1.0, 1.0, 1.0, 1.0 );
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Use our "screen quad" shaders
+    glUseProgram( programScreen );
+
+    glBindVertexArray(vaoScreenQuad);
+    glBindTexture(GL_TEXTURE_2D, texDepthBuffer); // render depth map to quad for debugging
+    //glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+    glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
+*/
+    // swap the buffers
+    glutSwapBuffers();
+}
+
+void renderScene(const GLuint &targetProgram ) {
+    // Transform will be different for the objects, for now just set it up
+    Matrix mTransform;
+    GLuint mTransformID = glGetUniformLocation(program, "mTransform");
 
     //
     // Illumination BLOW UP
@@ -383,26 +457,6 @@ void display () {
     // Drawing elements
     glDrawElements( GL_TRIANGLES, cylinderNumElements, GL_UNSIGNED_SHORT, (void*)cylinderElementByteOffset);
 
-    //
-    // Render screen quad, defu=ault framebuffer
-    //
-
-    // Now back to default framebuffer and render to screen quad
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDisable(GL_DEPTH_TEST); // disable depth test on screen-space quad
-
-    glClearColor( 1.0, 1.0, 1.0, 1.0 );
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Use our "screen quad" shaders
-    glUseProgram( programScreen );
-
-    glBindVertexArray(vaoScreenQuad);
-    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
-    glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
-
-    // swap the buffers
-    glutSwapBuffers();
 }
 
 // to use the keyboard
