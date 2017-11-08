@@ -12,6 +12,9 @@
 // C libraries
 #include <iostream>
 
+// Helper variables
+#include "screenQuadHelper.h"
+
 // Header-only
 #include "shader.h"
 #include "mathHelper.h"
@@ -28,6 +31,7 @@ using namespace std;
 
 // PROGRAM ID
 GLuint program;
+GLuint programScreen;
 
 // Shapes we will use
 Shape cube;
@@ -41,14 +45,22 @@ GLuint ebuffer;
 GLuint vaoCube;
 GLuint vaoSphere;
 GLuint vaoCylinder;
+GLuint vaoScreenQuad;
+
+GLuint framebuffer;
+GLuint renderbuffer;
+
+GLuint texColorBuffer; // screen quad buffer
 
 GLuint sphereElementByteOffset; // used on the draw
 GLuint cylinderElementByteOffset; // used on the draw
+GLuint screenQuadElementByteOffset; // used on the draw
 
 // Total number of elements that will be draw
 int cubeNumElements;
 int sphereNumElements;
 int cylinderNumElements;
+int screenQuadNumElements;
 
 // Our Camera
 Camera cam(PROJ_PERSP);
@@ -107,9 +119,18 @@ void init () {
 
     int totalCylinderDataSize = vCylinderDataSize + nCylinderDataSize;
 
+    // Screen Quad
+    int vScreenQuadDataSize = 4*2*sizeof(GLfloat);
+    int uvScreenQuadDataSize = 4*2*sizeof(GLfloat);
+    int eScreenQuadDataSize = 6*sizeof(GLshort);
+
+    int totalScreenQuadDataSize = vScreenQuadDataSize + uvScreenQuadDataSize + eScreenQuadDataSize;
+
     // Load shaders
     program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
                                          "shaders/phongLightingFrag.glsl" );
+    programScreen = shader::makeShaderProgram( "shaders/framebufferScreenVert.glsl",
+                                               "shaders/framebufferScreenFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -125,13 +146,16 @@ void init () {
     // (VVVV) (NNNN) | (VVVV) (NNNN) | ...
     glBufferData( GL_ARRAY_BUFFER, totalCubeDataSize +
                                    totalSphereDataSize +
-                                   totalCylinderDataSize, NULL, GL_STATIC_DRAW );
+                                   totalCylinderDataSize +
+                                   totalScreenQuadDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ARRAY_BUFFER, 0, vCubeDataSize, cube.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, vCubeDataSize, nCubeDataSize, cube.getNormals() );
     glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize, vSphereDataSize, sphere.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + vSphereDataSize, nSphereDataSize, sphere.getNormals() );
     glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize, vCylinderDataSize, cylinder.getVertices() );
     glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + vCylinderDataSize, nCylinderDataSize, cylinder.getNormals() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize, vScreenQuadDataSize, quadVertices );
+    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize + vScreenQuadDataSize, uvScreenQuadDataSize, quadTextures );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -142,10 +166,14 @@ void init () {
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
     // Create space for the data, load the data
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize + eCylinderDataSize, NULL, GL_STATIC_DRAW );
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize +
+                                           eSphereDataSize +
+                                           eCylinderDataSize +
+                                           eScreenQuadDataSize, NULL, GL_STATIC_DRAW );
     glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, 0, eCubeDataSize, cube.getElements() );
     glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize, eSphereDataSize, sphere.getElements() );
     glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize, eCylinderDataSize, cylinder.getElements() );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize + eCylinderDataSize, eScreenQuadDataSize, quadElements );
 
     cubeNumElements = cube.getNumElements();
 
@@ -155,13 +183,8 @@ void init () {
     cylinderNumElements = cylinder.getNumElements();
     cylinderElementByteOffset = eCubeDataSize + eSphereDataSize; // cylinder starts after cube and sphere
 
-
-    //
-    // SETTING UP THE SHADER
-    //
-
-    // Use program
-    glUseProgram( program );
+    screenQuadNumElements = 6;
+    screenQuadElementByteOffset = eCubeDataSize + eSphereDataSize + eCylinderDataSize; // screen quade after cube, sphere, cylinder
 
     //
     // VERTEX ARRAY OBJECTS
@@ -170,10 +193,12 @@ void init () {
     // Setting up vertex array object
     GLuint vPosition;
     GLuint vNormal;
+    GLuint vTexCoord;
 
     glGenVertexArrays(1, &vaoCube);
     glGenVertexArrays(1, &vaoSphere);
     glGenVertexArrays(1, &vaoCylinder);
+    glGenVertexArrays(1, &vaoScreenQuad);
 
     // Cube
     glBindVertexArray(vaoCube);
@@ -217,18 +242,68 @@ void init () {
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
+    // Screen Quad
+    glBindVertexArray(vaoScreenQuad);
+    glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    // Some openGL initialization
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_CULL_FACE );
-    glClearColor( 0.0, 0.0, 0.0, 1.0 );
-    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); // This shows just the lines
+    vPosition = glGetAttribLocation( programScreen , "vPosition" );
+    glEnableVertexAttribArray( vPosition );
+    glVertexAttribPointer( vPosition, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize) );
+
+    vTexCoord = glGetAttribLocation( programScreen, "vTexCoord" );
+    glEnableVertexAttribArray( vTexCoord );
+    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize + vScreenQuadDataSize) );
+
+    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
+
+    // Wireframe test
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+}
+
+void prepareFramebuffers () {
+    //
+    // FRAMEBUFFER OBJECTS
+    //
+
+    glGenFramebuffers(1, &framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+    glGenTextures(1, &texColorBuffer);
+    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
+
+    //
+    // RENDERBUFFER OBJECTS
+    //
+
+    glGenRenderbuffers(1, &renderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 512, 512);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::printf("Error building Framebuffer!\n");
+    }
 }
 
 void display () {
-    // clear
+    //
+    // Normal render, to framebuffer
+    //
+
+    // Bind texture framebuffer, render as you would normally
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glEnable( GL_DEPTH_TEST );
+
+    // clear framebuffer content
+    glClearColor( 0.0, 0.0, 0.0, 1.0 );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+    // Use our "normal" shaders to render the scene
+    glUseProgram( program );
 
     // Transform will be different for the objects, for now just set it up
     Matrix mTransform;
@@ -243,7 +318,6 @@ void display () {
     Matrix mProjMatrix = cam.getProjMatrix();
     GLuint mProjMatrixID = glGetUniformLocation(program, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
-
 
     //
     // Illumination BLOW UP
@@ -308,6 +382,24 @@ void display () {
 
     // Drawing elements
     glDrawElements( GL_TRIANGLES, cylinderNumElements, GL_UNSIGNED_SHORT, (void*)cylinderElementByteOffset);
+
+    //
+    // Render screen quad, defu=ault framebuffer
+    //
+
+    // Now back to default framebuffer and render to screen quad
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST); // disable depth test on screen-space quad
+
+    glClearColor( 1.0, 1.0, 1.0, 1.0 );
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Use our "screen quad" shaders
+    glUseProgram( programScreen );
+
+    glBindVertexArray(vaoScreenQuad);
+    glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+    glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
 
     // swap the buffers
     glutSwapBuffers();
@@ -404,6 +496,7 @@ int main ( int argc, char **argv ) {
     std::printf("%s\n%s\n", glGetString(GL_RENDERER),  glGetString(GL_VERSION));
 
     init();
+    prepareFramebuffers();
 
     glutDisplayFunc( display );
     glutKeyboardFunc( keyboard );
