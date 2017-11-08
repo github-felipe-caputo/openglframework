@@ -129,8 +129,8 @@ void init () {
     // Load shaders
     program = shader::makeShaderProgram( "shaders/phongLightingVert.glsl",
                                          "shaders/phongLightingFrag.glsl" );
-    programScreen = shader::makeShaderProgram( "shaders/framebufferScreenVert.glsl",
-                                               "shaders/framebufferScreenFrag.glsl" );
+    programScreen = shader::makeShaderProgram( "shaders/quadScreenVert.glsl",
+                                               "shaders/quadScreenFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
