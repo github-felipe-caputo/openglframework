@@ -1,7 +1,7 @@
 #version 410
 
 // Shape values
-in vec3 vPosition;
+layout (location = 0) in vec3 vPosition;
 
 // ModelView and Projection values
 uniform mat4 mTransform;

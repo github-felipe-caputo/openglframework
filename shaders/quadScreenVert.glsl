@@ -1,7 +1,7 @@
 #version 410
 
 // in values
-in vec2 vPosition;
+layout (location = 0) in vec3 vPosition;
 in vec2 vTexCoord;
 
 // out values

@@ -35,8 +35,8 @@ void main () {
     vec3 nV = normalize(V);
     vec3 R = reflect(-nL,nN);
 
-    vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));  
-    vec3 specText = vec3(texture(material.specular, uvTexCoord));  
+    vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));
+    vec3 specText = vec3(texture(material.specular, uvTexCoord));
 
     vec3 ambientColor = light.ambient * diffText;
     vec3 diffuseColor = light.lightIntensity * max(dot(nN, nL), 0.0) * diffText;
