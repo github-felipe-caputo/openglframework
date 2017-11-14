@@ -20,7 +20,7 @@ uniform sampler2D shadowMap;
 // out color
 out vec4 fragColor;
 
-float calculateShadow(vec4 posLightSpace) {
+float calculateShadow(vec4 posLightSpace, vec3 normal, vec3 lightDir) {
     // perspect divide, done automatically on gl_Position but not for this value
     vec3 projCoords = posLightSpace.xyz / posLightSpace.w; // normalize between [-1,1]
     projCoords = projCoords * 0.5 + 0.5; // normalize between [0,1] for the deapthmap
@@ -28,7 +28,9 @@ float calculateShadow(vec4 posLightSpace) {
     float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
 
-    return (currentDepth > closestDepth) ? 1.0 : 0.0;
+    //float delta = 0.005;
+    float delta = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    return (currentDepth - delta > closestDepth) ? 1.0 : 0.0;
 }
 
 void main () {
@@ -43,7 +45,7 @@ void main () {
     if(dot(nL, nN) < 0.0)
         specularColor = vec4(0.0,0.0,0.0,1.0);
 
-    float shadow = calculateShadow(posLightSpace);
+    float shadow = calculateShadow(posLightSpace, nN, nL);
 
     fragColor = ambientColor + (1.0 - shadow) * (diffuseColor + specularColor);
     //fragColor = vec4(vec3(gl_FragCoord.z), 1.0);

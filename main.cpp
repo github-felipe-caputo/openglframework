@@ -336,7 +336,9 @@ void display () {
     mProjMatrixID = glGetUniformLocation(programDepthMap, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
 
+    //glCullFace(GL_FRONT);
     renderScene( programDepthMap );
+    //glCullFace(GL_BACK);
 
     //
     // Render to to our "normal" shader using the generated depth map
