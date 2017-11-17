@@ -25,12 +25,21 @@ float calculateShadow(vec4 posLightSpace, vec3 normal, vec3 lightDir) {
     vec3 projCoords = posLightSpace.xyz / posLightSpace.w; // normalize between [-1,1]
     projCoords = projCoords * 0.5 + 0.5; // normalize between [0,1] for the deapthmap
 
-    float closestDepth = texture(shadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-
-    //float delta = 0.005;
     float delta = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    return (currentDepth - delta > closestDepth) ? 1.0 : 0.0;
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            float closestDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
+            shadow += (currentDepth - delta > closestDepth) ? 1.0 : 0.0;
+        }
+    }
+
+    //float closestDepth = texture(shadowMap, projCoords.xy).r;
+    //float currentDepth = projCoords.z;
+    return (shadow / 9);
 }
 
 void main () {
