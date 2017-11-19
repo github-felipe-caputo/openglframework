@@ -395,7 +395,7 @@ GLuint Shape::getNumUV() {
 GLuint Shape::getDiffTextureID(){
     return textureDiffMapID;
 }
-     
+
 /*
  * getSpecTextureID
  *
@@ -1381,7 +1381,7 @@ void Shape::readNormalMap ( char* filetexture ) {
         int texPos3 = elements[i+2]*2;
         float pos3[] = { vertices[vecPos3], vertices[vecPos3+1] , vertices[vecPos3+2]};
         float uv3[] = { uvtextures[texPos3], uvtextures[texPos3+1] };
-        
+
         // Our actual values used for the canculations of tangent and bitangent
         float edge1[] =  { pos2[0] -  pos1[0], pos2[1] -  pos1[1], pos2[2] -  pos1[2] };
         float edge2[] =  { pos3[0] -  pos1[0], pos3[1] -  pos1[1], pos3[2] -  pos1[2] };
@@ -1391,18 +1391,18 @@ void Shape::readNormalMap ( char* filetexture ) {
         // Calculating it
         float f = 1.0f / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1]);
 
-        float tangent[] = { 
+        float tangent[] = {
             f * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0]),
             f * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1]),
             f * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2]) };
         normalize(tangent);
-        
-        float bitangent[] = { 
+
+        float bitangent[] = {
             f * (-deltaUV2[0] * edge1[0] + deltaUV1[0] * edge2[0]),
             f * (-deltaUV2[0] * edge1[1] + deltaUV1[0] * edge2[1]),
             f * (-deltaUV2[0] * edge1[2] + deltaUV1[0] * edge2[2]) };
         normalize(bitangent);
-        
+
         // all three vertices from the triangle will share the same
         // tangent and bitangent, so we add those values three times
         for (int j = 0; j < 3; ++j) {
