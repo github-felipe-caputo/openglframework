@@ -33,9 +33,7 @@ using namespace std;
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 // PROGRAM ID
-GLuint programShadowMap;
-GLuint programScreen;
-GLuint programDepthMap;
+GLuint programGeometryPass;
 
 // Shapes we will use
 Shape cube;
@@ -148,12 +146,11 @@ void init () {
 
     // Load shaders
     // TODO: remove these three and create geometry and lighting shaders
-    programShadowMap = shader::makeShaderProgram( "shaders/phongLightingShadowVert.glsl",
-                                                  "shaders/phongLightingShadowFrag.glsl" );
-    programScreen = shader::makeShaderProgram( "shaders/quadScreenVert.glsl",
-                                               "shaders/quadDepthDebugScreenFrag.glsl" );
-    programDepthMap = shader::makeShaderProgram( "shaders/shadowMappingDepthVert.glsl",
-                                                 "shaders/shadowMappingDepthFrag.glsl" );
+    programGeometryPass = shader::makeShaderProgram( "shaders/gBufferGeometryVert.glsl",
+                                                     "shaders/gBufferGeometryFrag.glsl" );
+
+
+
 
     //
     // VERTEX ARRAY BUFFER
@@ -227,13 +224,12 @@ void init () {
     glBindVertexArray(vaoCube);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    //vPosition = glGetAttribLocation( programDepthMap , "vPosition" );
-    //glEnableVertexAttribArray( vPosition );
+    // vertex position
     glEnableVertexAttribArray( 0 );
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0) );
 
-    vNormal = glGetAttribLocation( programShadowMap, "vNormal" );
-    glEnableVertexAttribArray( vNormal );
+    // normals
+    glEnableVertexAttribArray( 1 );
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vCubeDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
@@ -242,13 +238,12 @@ void init () {
     glBindVertexArray(vaoSphere);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    //vPosition = glGetAttribLocation( programDepthMap , "vPosition" );
-    //glEnableVertexAttribArray( vPosition );
+    // vertex position
     glEnableVertexAttribArray( 0 );
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize) );
 
-    vNormal = glGetAttribLocation( programShadowMap, "vNormal" );
-    glEnableVertexAttribArray( vNormal );
+    // normals
+    glEnableVertexAttribArray( 1 );
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + vSphereDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
@@ -257,13 +252,12 @@ void init () {
     glBindVertexArray(vaoCylinder);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    //vPosition = glGetAttribLocation( programDepthMap , "vPosition" );
-    //glEnableVertexAttribArray( vPosition );
+    // vertex position
     glEnableVertexAttribArray( 0 );
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize) );
 
-    vNormal = glGetAttribLocation( programShadowMap, "vNormal" );
-    glEnableVertexAttribArray( vNormal );
+    // normals
+    glEnableVertexAttribArray( 1 );
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + vCylinderDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
@@ -272,20 +266,18 @@ void init () {
     glBindVertexArray(vaoScreenQuad);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
-    //vPosition = glGetAttribLocation( programScreen , "vPosition" );
-    //glEnableVertexAttribArray( vPosition );
+    // vertex position
     glEnableVertexAttribArray( 0 );
     glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize) );
 
-    vTexCoord = glGetAttribLocation( programScreen, "vTexCoord" );
-    glEnableVertexAttribArray( vTexCoord );
+    // texture coords
+    glEnableVertexAttribArray( 2 );
     glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize + vScreenQuadDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
     // Wireframe test
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 
     glEnable(GL_MULTISAMPLE);
     glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
@@ -351,12 +343,12 @@ void display () {
 
     // Camera view matrix
     Matrix mViewMatrix = cam.getViewMatrix();
-    GLuint mViewMatrixID = glGetUniformLocation(programShadowMap, "mViewMatrix");
+    GLuint mViewMatrixID = glGetUniformLocation(programGeometryPass, "mViewMatrix");
     glUniformMatrix4fv(mViewMatrixID, 1, GL_TRUE, &mViewMatrix[0][0]);
 
     // Camera projection matrix
     Matrix mProjMatrix = cam.getProjMatrix();
-    GLuint mProjMatrixID = glGetUniformLocation(programShadowMap, "mProjMatrix");
+    GLuint mProjMatrixID = glGetUniformLocation(programGeometryPass, "mProjMatrix");
     glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
 
     //
@@ -364,15 +356,13 @@ void display () {
     //
 
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-    //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO); gbuffer!
-    glClear(GL_DEPTH_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    //glUseProgram( programDepthMap );
-    //user geometry pass shader!
+    glUseProgram( programGeometryPass );
 
     //glCullFace(GL_FRONT);
-    //renderScene( programDepthMap );
-    //render to geometry pass!
+    renderScene( programGeometryPass );
     //glCullFace(GL_BACK);
 
     //
