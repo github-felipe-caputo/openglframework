@@ -34,6 +34,7 @@ using namespace std;
 
 // PROGRAM ID
 GLuint programGeometryPass;
+GLuint programLightPass;
 
 // Shapes we will use
 Shape cube;
@@ -148,9 +149,8 @@ void init () {
     // TODO: remove these three and create geometry and lighting shaders
     programGeometryPass = shader::makeShaderProgram( "shaders/gBufferGeometryVert.glsl",
                                                      "shaders/gBufferGeometryFrag.glsl" );
-
-
-
+    programLightPass = shader::makeShaderProgram( "shaders/deferredShadingVert.glsl",
+                                                  "shaders/deferredShadingFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
