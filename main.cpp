@@ -37,17 +37,13 @@ GLuint programGeometryPass;
 GLuint programLightPass;
 
 // Shapes we will use
-Shape cube;
-Shape sphere;
-Shape cylinder;
+Shape shape;
 
 // BUFFERS
 GLuint vbuffer;
 GLuint ebuffer;
 
-GLuint vaoCube;
-GLuint vaoSphere;
-GLuint vaoCylinder;
+GLuint vaoShape;
 GLuint vaoScreenQuad;
 
 // G-Buffer Data
@@ -55,13 +51,10 @@ GLuint gBuffer;
 GLuint gPosition, gNormal, gColorAlbSpec;
 
 GLuint sphereElementByteOffset; // used on the draw
-GLuint cylinderElementByteOffset; // used on the draw
 GLuint screenQuadElementByteOffset; // used on the draw
 
 // Total number of elements that will be draw
-int cubeNumElements;
-int sphereNumElements;
-int cylinderNumElements;
+int shapeNumElements;
 int screenQuadNumElements;
 
 // Our Camera
@@ -102,48 +95,26 @@ void init () {
     // SHAPES
     //
 
-    // First: cube
-    cube.makeCube(3);
-    cube.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
-                      0.89f, 0.0f, 0.0f, 0.7f,
-                      1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
+    // TODO: the specular texture NEEDS TO BE a specular intensity texture
+    // in other words, not a texture where we care for 3 encoded values
+    // RGB, but a texture with only one encoded value that should be the
+    // specular intensity
+    shape.clearShape();
+    shape.readObjLightMap( "objects/BrickWall.obj" , "objects/Brick_RedNormal_1k_d.png", "objects/Brick_RedNormal_1k_g.png" );
 
-    int vCubeDataSize = cube.getNumVertices()*3*sizeof(GLfloat);
-    int nCubeDataSize = cube.getNumNormals()*3*sizeof(GLfloat);
-    int eCubeDataSize = cube.getNumElements()*sizeof(GLshort);
+    int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
+    int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
+    int uvShapeDataSize = shape.getNumUV()*2*sizeof(GLfloat);
+    int eShapeDataSize = shape.getNumElements()*sizeof(GLshort);
 
-    int totalCubeDataSize = vCubeDataSize + nCubeDataSize;
-
-    // Second: sphere
-    sphere.makeSphere(3, SMOOTH);
-    sphere.setMaterials(0.1f, 0.5f, 0.9f, 0.5f,
-                        0.0f, 0.0f, 0.5f, 0.9f,
-                        1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
-
-    int vSphereDataSize = sphere.getNumVertices()*3*sizeof(GLfloat);
-    int nSphereDataSize = sphere.getNumNormals()*3*sizeof(GLfloat);
-    int eSphereDataSize = sphere.getNumElements()*sizeof(GLshort);
-
-    int totalSphereDataSize = vSphereDataSize + nSphereDataSize;
-
-    // Third: Cylinder
-    cylinder.makeCylinder(16,5, SMOOTH);
-    cylinder.setMaterials(0.5f, 0.9f, 0.2f, 0.5f,
-                          0.0f, 1.0f, 0.5f, 0.6f,
-                          1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
-
-    int vCylinderDataSize = cylinder.getNumVertices()*3*sizeof(GLfloat);
-    int nCylinderDataSize = cylinder.getNumNormals()*3*sizeof(GLfloat);
-    int eCylinderDataSize = cylinder.getNumElements()*sizeof(GLshort);
-
-    int totalCylinderDataSize = vCylinderDataSize + nCylinderDataSize;
+    int totalShapeDataSize = vShapeDataSize + nShapeDataSize + uvShapeDataSize;
 
     // Screen Quad
     int vScreenQuadDataSize = 4*2*sizeof(GLfloat);
     int uvScreenQuadDataSize = 4*2*sizeof(GLfloat);
     int eScreenQuadDataSize = 6*sizeof(GLshort);
 
-    int totalScreenQuadDataSize = vScreenQuadDataSize + uvScreenQuadDataSize + eScreenQuadDataSize;
+    int totalScreenQuadDataSize = vScreenQuadDataSize + uvScreenQuadDataSize;
 
     // Load shaders
     // TODO: remove these three and create geometry and lighting shaders
@@ -162,20 +133,15 @@ void init () {
 
     // Create space for the data, load the data
     // Data looks like
-    //    shape 1        shape 2
-    // (VVVV) (NNNN) | (VVVV) (NNNN) | ...
-    glBufferData( GL_ARRAY_BUFFER, totalCubeDataSize +
-                                   totalSphereDataSize +
-                                   totalCylinderDataSize +
+    //    shape 1              shape 2 (quad)
+    // (VVVV) (NNNN) (UVUV) | (VVVV) (UVUV) | ...
+    glBufferData( GL_ARRAY_BUFFER, totalShapeDataSize +
                                    totalScreenQuadDataSize, NULL, GL_STATIC_DRAW );
-    glBufferSubData( GL_ARRAY_BUFFER, 0, vCubeDataSize, cube.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, vCubeDataSize, nCubeDataSize, cube.getNormals() );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize, vSphereDataSize, sphere.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + vSphereDataSize, nSphereDataSize, sphere.getNormals() );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize, vCylinderDataSize, cylinder.getVertices() );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + vCylinderDataSize, nCylinderDataSize, cylinder.getNormals() );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize, vScreenQuadDataSize, quadVertices );
-    glBufferSubData( GL_ARRAY_BUFFER, totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize + vScreenQuadDataSize, uvScreenQuadDataSize, quadTextures );
+    glBufferSubData( GL_ARRAY_BUFFER, 0, vShapeDataSize, shape.getVertices() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize, nShapeDataSize, shape.getNormals() );
+    glBufferSubData( GL_ARRAY_BUFFER, vShapeDataSize + nShapeDataSize, uvShapeDataSize, shape.getUV() );
+    glBufferSubData( GL_ARRAY_BUFFER, totalShapeDataSize, vScreenQuadDataSize, quadVertices );
+    glBufferSubData( GL_ARRAY_BUFFER, totalShapeDataSize + vScreenQuadDataSize, uvScreenQuadDataSize, quadTextures );
 
     //
     // ELEMENT ARRAY BUFFER
@@ -186,42 +152,25 @@ void init () {
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
     // Create space for the data, load the data
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize +
-                                           eSphereDataSize +
-                                           eCylinderDataSize +
+    glBufferData( GL_ELEMENT_ARRAY_BUFFER, eShapeDataSize +
                                            eScreenQuadDataSize, NULL, GL_STATIC_DRAW );
-    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, 0, eCubeDataSize, cube.getElements() );
-    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize, eSphereDataSize, sphere.getElements() );
-    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize, eCylinderDataSize, cylinder.getElements() );
-    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eCubeDataSize + eSphereDataSize + eCylinderDataSize, eScreenQuadDataSize, quadElements );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, 0, eShapeDataSize, shape.getElements() );
+    glBufferSubData( GL_ELEMENT_ARRAY_BUFFER, eShapeDataSize, eScreenQuadDataSize, quadElements );
 
-    cubeNumElements = cube.getNumElements();
-
-    sphereNumElements = sphere.getNumElements();
-    sphereElementByteOffset = eCubeDataSize; // sphere starts after cube
-
-    cylinderNumElements = cylinder.getNumElements();
-    cylinderElementByteOffset = eCubeDataSize + eSphereDataSize; // cylinder starts after cube and sphere
+    shapeNumElements = shape.getNumElements();
 
     screenQuadNumElements = 6;
-    screenQuadElementByteOffset = eCubeDataSize + eSphereDataSize + eCylinderDataSize; // screen quade after cube, sphere, cylinder
+    screenQuadElementByteOffset = eShapeDataSize ; // screen quad starts after shape
 
     //
     // VERTEX ARRAY OBJECTS
     //
 
-    // Setting up vertex array object
-    GLuint vPosition;
-    GLuint vNormal;
-    GLuint vTexCoord;
-
-    glGenVertexArrays(1, &vaoCube);
-    glGenVertexArrays(1, &vaoSphere);
-    glGenVertexArrays(1, &vaoCylinder);
+    glGenVertexArrays(1, &vaoShape);
     glGenVertexArrays(1, &vaoScreenQuad);
 
     // Cube
-    glBindVertexArray(vaoCube);
+    glBindVertexArray(vaoShape);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
     // vertex position
@@ -230,35 +179,7 @@ void init () {
 
     // normals
     glEnableVertexAttribArray( 1 );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vCubeDataSize) );
-
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
-
-    // Sphere
-    glBindVertexArray(vaoSphere);
-    glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
-
-    // vertex position
-    glEnableVertexAttribArray( 0 );
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize) );
-
-    // normals
-    glEnableVertexAttribArray( 1 );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + vSphereDataSize) );
-
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
-
-    // Cylinder
-    glBindVertexArray(vaoCylinder);
-    glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
-
-    // vertex position
-    glEnableVertexAttribArray( 0 );
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize) );
-
-    // normals
-    glEnableVertexAttribArray( 1 );
-    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + vCylinderDataSize) );
+    glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
@@ -268,11 +189,11 @@ void init () {
 
     // vertex position
     glEnableVertexAttribArray( 0 );
-    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize) );
+    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize) );
 
     // texture coords
     glEnableVertexAttribArray( 2 );
-    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalCubeDataSize + totalSphereDataSize + totalCylinderDataSize + vScreenQuadDataSize) );
+    glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize + vScreenQuadDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
@@ -355,7 +276,7 @@ void display () {
     // Render to g buffer!
     //
 
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glViewport(0, 0, 512, 512);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -402,93 +323,27 @@ void renderScene(const GLuint &targetProgram ) {
     // First the cube
     //
 
-    glBindVertexArray(vaoCube);
+    glBindVertexArray(vaoShape);
 
-    light.setPhongIllumination(targetProgram, cube);
+    // set up textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, shape.getDiffTextureID());
 
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, shape.getSpecTextureID());
+
+    GLuint textureDiffID = glGetUniformLocation(targetProgram, "material.diffuse");
+    glUniform1i(textureDiffID, 0);
+
+    GLuint textureSpecID = glGetUniformLocation(targetProgram, "material.specular");
+    glUniform1i(textureSpecID, 1);
+
+    // transforms
     mTransform = translate(-1,-0.9,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
     // Drawing elements
-    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
-
-    //
-    // Now the sphere
-    //
-
-    glBindVertexArray(vaoSphere);
-
-    light.setPhongIllumination(targetProgram, sphere);
-
-    mTransform = translate(1,-0.9,-4) * scale(0.5,0.5,0.5) * rotate(ztheta, zVec) *  rotate(ytheta, yVec) * rotate(xtheta, xVec);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, sphereNumElements, GL_UNSIGNED_SHORT, (void*)sphereElementByteOffset);
-
-    //
-    // Another the cube
-    //
-
-    glBindVertexArray(vaoCube);
-
-    light.setPhongIllumination(targetProgram, cube);
-
-    mTransform = translate(1,1.1,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
-
-    //
-    // Finally the cylinder
-    //
-
-    glBindVertexArray(vaoCylinder);
-
-    light.setPhongIllumination(targetProgram, cylinder);
-
-    mTransform = translate(-1,1.1,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, cylinderNumElements, GL_UNSIGNED_SHORT, (void*)cylinderElementByteOffset);
-
-    // Wall and floor
-
-    float planeAmb[] = {0.5f, 0.5f, 0.5f};
-    float planeDiff[] = {0.5f, 0.5f, 0.5f};
-    float planeSpec[] = {1.0f, 1.0f, 1.0f};
-
-    //
-    // Another cube, scaled behind the scene as a sort of plane (wall)
-    //
-    glBindVertexArray(vaoCube);
-    light.setPhongIllumination(targetProgram,
-                               planeAmb, 0.5f,
-                               planeDiff, 0.6f,
-                               planeSpec, 0.5f, 30.0f);
-
-    mTransform = translate(0,0,-7) * scale(10, 10, 0.1f);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
-
-    //
-    // Another cube, scaled behind the scene as a sort of plane (floor)
-    //
-    glBindVertexArray(vaoCube);
-    light.setPhongIllumination(targetProgram,
-                               planeAmb, 0.5f,
-                               planeDiff, 0.6f,
-                               planeSpec, 0.5f, 30.0f);
-
-    mTransform = translate(0,-2,-3) * rotate(90, xVec) * scale(10, 10, 0.1f);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
-
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, cubeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+    glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
 }
 
 // to use the keyboard

@@ -10,8 +10,13 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 uvTexCoord;
 
-uniform sampler2D texture_diffuse;
-uniform sampler2D texture_specular;
+struct Material {
+    sampler2D diffuse;
+    sampler2D specular;
+};
+
+// struct
+uniform Material material;
 
 void main () {
     // Position on the g buffer
@@ -22,6 +27,6 @@ void main () {
 
     // Colors come from separated textures, but we add them on the same
     // g buffer texture
-    gColorAlbSpec.rgb = texture(texture_diffuse, uvTexCoord).rgb;
-    gColorAlbSpec.a = texture(texture_specular, uvTexCoord).r;
+    gColorAlbSpec.rgb = texture(material.diffuse, uvTexCoord).rgb;
+    gColorAlbSpec.a = texture(material.specular, uvTexCoord).r;
 }
