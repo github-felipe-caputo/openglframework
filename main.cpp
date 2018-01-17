@@ -100,7 +100,9 @@ void init () {
     // RGB, but a texture with only one encoded value that should be the
     // specular intensity
     shape.clearShape();
-    shape.readObjLightMap( "objects/BrickWall.obj" , "objects/Brick_RedNormal_1k_d.png", "objects/Brick_RedNormal_1k_g.png" );
+    shape.readObjLightMap( "objects/BrickWall.obj" ,
+                           "objects/Brick_RedNormal_1k_d.png",
+                           "objects/Brick_RedNormal_1k_g.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
     int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
@@ -169,6 +171,7 @@ void init () {
     glGenVertexArrays(1, &vaoShape);
     glGenVertexArrays(1, &vaoScreenQuad);
 
+    //
     // Cube
     glBindVertexArray(vaoShape);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
@@ -183,6 +186,7 @@ void init () {
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
+    //
     // Screen Quad
     glBindVertexArray(vaoScreenQuad);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
@@ -200,8 +204,8 @@ void init () {
     // Wireframe test
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    glEnable(GL_MULTISAMPLE);
-    glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
+    //glEnable(GL_MULTISAMPLE);
+    //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     glEnable( GL_DEPTH_TEST );
     // glEnable( GL_CULL_FACE );
 }
@@ -297,27 +301,19 @@ void display () {
     glClearColor( 0.0, 0.0, 0.0, 1.0 );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    // Use our "normal" shaders to render the scene
-    //glUseProgram( programShadowMap );
-    //use the shador to light pass !
+    // Use our lighting shader
+    glUseProgram( programLightPass );
 
-    //renderScene( programShadowMap );
-    //render to light pass !
+    renderGBufferToQuad( programLightPass );
 
     // swap the buffers
     glutSwapBuffers();
 }
 
-void renderScene(const GLuint &targetProgram ) {
+void renderScene( const GLuint &targetProgram ) {
     // Transform will be different for the objects, for now just set it up
     Matrix mTransform;
     GLuint mTransformID = glGetUniformLocation(targetProgram, "mTransform");
-
-    //
-    // Illumination BLOW UP
-    //
-
-    Lighting light(lightPos, lightIntensityRGB, lightAmbientRGB);
 
     //
     // First the cube
@@ -344,6 +340,25 @@ void renderScene(const GLuint &targetProgram ) {
 
     // Drawing elements
     glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+}
+
+void renderGBufferToQuad (const GLuint &targetProgram) {
+    // First the gbuffer textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gColorAlbSpec);
+
+    // TODO: Is this really necessary? CHECK LATERS
+    // GLuint textureDiffID = glGetUniformLocation(targetProgram, "gPosition");
+    // glUniform1i(textureDiffID, 0);
+
+    // Illumination
+    Lighting light(lightPos, lightIntensityRGB, lightAmbientRGB);
 }
 
 // to use the keyboard

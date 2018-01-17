@@ -7,7 +7,7 @@
 
 // in values
 layout (location = 0) in vec3 vPosition;
-in vec2 vTexCoord;
+layout (location = 2) in vec2 vTexCoord;
 
 // out values
 out vec2 uvTexCoord;
