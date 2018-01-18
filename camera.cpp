@@ -207,3 +207,13 @@ void Camera::moveCameraTarget (int x, int y) {
     mouseOldX = x;
     mouseOldY = y;
 }
+
+vector<float> Camera::getCameraPosition () {
+    vector<float> pos;
+
+    pos.push_back(eyePoint[0][0]);
+    pos.push_back(eyePoint[1][0]);
+    pos.push_back(eyePoint[2][0]);
+
+    return pos;
+}

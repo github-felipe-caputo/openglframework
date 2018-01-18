@@ -357,8 +357,14 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     // GLuint textureDiffID = glGetUniformLocation(targetProgram, "gPosition");
     // glUniform1i(textureDiffID, 0);
 
+    // Send camera pos
+    GLuint CameraWorldPosID = glGetUniformLocation(targetProgram, "CameraWorldPos");
+    glUniform3fv(CameraWorldPosID, 1, &(cam.getCameraPosition())[0]);
+
     // Illumination
     Lighting light(lightPos, lightIntensityRGB, lightAmbientRGB);
+    light.setPhongIllumination( targetProgram );
+
 }
 
 // to use the keyboard

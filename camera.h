@@ -12,6 +12,7 @@
 
 #include "mathHelper.h"
 
+#include <vector>
 #include <iostream>
 
 using namespace std;
@@ -185,6 +186,17 @@ public:
      */
     void moveCameraTarget (int x, int y);
 
+    /*
+     * getCameraPosition
+     *
+     * RETURN:
+     *         The camera (eye pos) position in a vector<float> format.
+     *
+     * DESCRIPTION:
+     *         Simply returns the camera position in a vector format.
+     *
+     */
+    vector<float> getCameraPosition ();
 };
 
 #endif
