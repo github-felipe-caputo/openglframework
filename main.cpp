@@ -26,6 +26,7 @@
 
 // funcs
 void renderScene(const GLuint &targetProgram);
+void renderGBufferToQuad(const GLuint &targetProgram);
 
 using namespace std;
 
@@ -35,6 +36,7 @@ using namespace std;
 // PROGRAM ID
 GLuint programGeometryPass;
 GLuint programLightPass;
+GLuint programScreen; // debugging
 
 // Shapes we will use
 Shape shape;
@@ -50,7 +52,6 @@ GLuint vaoScreenQuad;
 GLuint gBuffer;
 GLuint gPosition, gNormal, gColorAlbSpec;
 
-GLuint sphereElementByteOffset; // used on the draw
 GLuint screenQuadElementByteOffset; // used on the draw
 
 // Total number of elements that will be draw
@@ -85,7 +86,6 @@ float ztheta = 0.0f;
 const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;
 
-
 // Variables for window viewport
 const unsigned int WINDOW_WIDTH = 512;
 const unsigned int WINDOW_HEIGHT = 512;
@@ -100,9 +100,9 @@ void init () {
     // RGB, but a texture with only one encoded value that should be the
     // specular intensity
     shape.clearShape();
-    shape.readObjLightMap( "objects/BrickWall.obj" ,
-                           "objects/Brick_RedNormal_1k_d.png",
-                           "objects/Brick_RedNormal_1k_g.png" );
+    shape.readObjLightMap( "objects/Pokemon.obj" ,
+                           "objects/Final_Pokemon_Diffuse.png",
+                           "objects/Final_Pokemon_Specular.png" );
 
     int vShapeDataSize = shape.getNumVertices()*3*sizeof(GLfloat);
     int nShapeDataSize = shape.getNumNormals()*3*sizeof(GLfloat);
@@ -119,11 +119,12 @@ void init () {
     int totalScreenQuadDataSize = vScreenQuadDataSize + uvScreenQuadDataSize;
 
     // Load shaders
-    // TODO: remove these three and create geometry and lighting shaders
     programGeometryPass = shader::makeShaderProgram( "shaders/gBufferGeometryVert.glsl",
                                                      "shaders/gBufferGeometryFrag.glsl" );
     programLightPass = shader::makeShaderProgram( "shaders/deferredShadingVert.glsl",
                                                   "shaders/deferredShadingFrag.glsl" );
+    programScreen = shader::makeShaderProgram( "shaders/quadScreenVert.glsl",
+                                               "shaders/quadScreenFrag.glsl" );
 
     //
     // VERTEX ARRAY BUFFER
@@ -172,7 +173,7 @@ void init () {
     glGenVertexArrays(1, &vaoScreenQuad);
 
     //
-    // Cube
+    // Shape
     glBindVertexArray(vaoShape);
     glBindBuffer(GL_ARRAY_BUFFER, vbuffer);
 
@@ -183,6 +184,10 @@ void init () {
     // normals
     glEnableVertexAttribArray( 1 );
     glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize) );
+
+    // texture coords
+    glEnableVertexAttribArray( 2 );
+    glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vShapeDataSize + nShapeDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
@@ -196,18 +201,18 @@ void init () {
     glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize) );
 
     // texture coords
-    glEnableVertexAttribArray( 2 );
-    glVertexAttribPointer( 2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize + vScreenQuadDataSize) );
+    glEnableVertexAttribArray( 1 );
+    glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize + vScreenQuadDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
 
     // Wireframe test
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     //glEnable(GL_MULTISAMPLE);
     //glHint(GL_MULTISAMPLE_FILTER_HINT_NV, GL_NICEST);
     glEnable( GL_DEPTH_TEST );
-    // glEnable( GL_CULL_FACE );
+    //glEnable( GL_CULL_FACE );
 }
 
 void prepareFramebuffers () {
@@ -242,6 +247,10 @@ void prepareFramebuffers () {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorAlbSpec, 0);
 
+    // Attachements to draw buffer
+    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    glDrawBuffers(3, attachments);
+
     //
     // Renderbuffer for Depth
     //
@@ -251,11 +260,7 @@ void prepareFramebuffers () {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, WINDOW_WIDTH, WINDOW_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbufferDepth);
 
-    // Attachements to draw buffer and check frame buffer
-
-    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
-
+    // Check frame buffer
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::printf("Error building Framebuffer!\n");
     }
@@ -264,23 +269,20 @@ void prepareFramebuffers () {
 }
 
 void display () {
-    // Both will use camera view and projections
+    // check OpenGL error
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        cerr << "OpenGL error: " << err << " - " << gluErrorString(err) << endl;
+    }
 
-    // Camera view matrix
-    Matrix mViewMatrix = cam.getViewMatrix();
-    GLuint mViewMatrixID = glGetUniformLocation(programGeometryPass, "mViewMatrix");
-    glUniformMatrix4fv(mViewMatrixID, 1, GL_TRUE, &mViewMatrix[0][0]);
-
-    // Camera projection matrix
-    Matrix mProjMatrix = cam.getProjMatrix();
-    GLuint mProjMatrixID = glGetUniformLocation(programGeometryPass, "mProjMatrix");
-    glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     //
     // Render to g buffer!
     //
 
-    glViewport(0, 0, 512, 512);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -289,12 +291,12 @@ void display () {
     //glCullFace(GL_FRONT);
     renderScene( programGeometryPass );
     //glCullFace(GL_BACK);
-
+/*
     //
     // Render to to the light pass shader using the generated textures from the geometry one!
     //
 
-    glViewport(0, 0, 512, 512);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // clear framebuffer content
@@ -305,18 +307,52 @@ void display () {
     glUseProgram( programLightPass );
 
     renderGBufferToQuad( programLightPass );
+*/
+
+    //
+    // Render to Depth Map Quad, on our default framebuffer (debbuging)
+    //
+
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // clear framebuffer content
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    // Use our "normal" shaders to render the scene
+    glUseProgram( programScreen );
+
+    glBindVertexArray(vaoScreenQuad);
+
+    // set up textures
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gPosition); // render to quad for debugging
+    GLuint textureID = glGetUniformLocation(programScreen, "screenTexture");
+    glUniform1i(textureID, 0);
+
+    glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
 
     // swap the buffers
     glutSwapBuffers();
 }
 
-void renderScene( const GLuint &targetProgram ) {
+void renderScene ( const GLuint &targetProgram ) {
+    // Camera view matrix
+    Matrix mViewMatrix = cam.getViewMatrix();
+    GLuint mViewMatrixID = glGetUniformLocation(targetProgram, "mViewMatrix");
+    glUniformMatrix4fv(mViewMatrixID, 1, GL_TRUE, &mViewMatrix[0][0]);
+
+    // Camera projection matrix
+    Matrix mProjMatrix = cam.getProjMatrix();
+    GLuint mProjMatrixID = glGetUniformLocation(targetProgram, "mProjMatrix");
+    glUniformMatrix4fv(mProjMatrixID, 1, GL_TRUE, &mProjMatrix[0][0]);
+
     // Transform will be different for the objects, for now just set it up
     Matrix mTransform;
     GLuint mTransformID = glGetUniformLocation(targetProgram, "mTransform");
 
     //
-    // First the cube
+    // The shape
     //
 
     glBindVertexArray(vaoShape);
@@ -335,7 +371,7 @@ void renderScene( const GLuint &targetProgram ) {
     glUniform1i(textureSpecID, 1);
 
     // transforms
-    mTransform = translate(-1,-0.9,-4) * rotate(ztheta, zVec) * rotate(ytheta, yVec) * rotate(xtheta, xVec);
+    mTransform = translate(0,-0.6f,-2.0f) * rotate(0, zVec) * rotate(180.0f, yVec) * rotate(0, xVec);
     glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
 
     // Drawing elements
@@ -343,6 +379,11 @@ void renderScene( const GLuint &targetProgram ) {
 }
 
 void renderGBufferToQuad (const GLuint &targetProgram) {
+
+    // TODO: Is this really necessary? CHECK LATERS
+    GLuint gBufferPositionTextureID = glGetUniformLocation(targetProgram, "gPosition");
+    glUniform1i(gBufferPositionTextureID, 0);
+
     // First the gbuffer textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -353,10 +394,6 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gColorAlbSpec);
 
-    // TODO: Is this really necessary? CHECK LATERS
-    // GLuint textureDiffID = glGetUniformLocation(targetProgram, "gPosition");
-    // glUniform1i(textureDiffID, 0);
-
     // Send camera pos
     GLuint CameraWorldPosID = glGetUniformLocation(targetProgram, "CameraWorldPos");
     glUniform3fv(CameraWorldPosID, 1, &(cam.getCameraPosition())[0]);
@@ -364,7 +401,6 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     // Illumination
     Lighting light(lightPos, lightIntensityRGB, lightAmbientRGB);
     light.setPhongIllumination( targetProgram );
-
 }
 
 // to use the keyboard
@@ -424,7 +460,6 @@ void mousePressedEvent( int button, int state, int x, int y ) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
         cam.setInitialMouseCoord(x,y);
     }
-
 }
 
 // Function to help setting the movement of the camera given the mouse

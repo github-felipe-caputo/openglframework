@@ -36,14 +36,14 @@ void main () {
     // Use normalMap values and TBN matrix to calculate the normal
     vec3 norm = vec3(texture(material.normal, uvTexCoord));
     norm = normalize(norm * 2.0 - 1.0);
-    norm = normalize(TBN * norm); 
+    norm = normalize(TBN * norm);
 
     vec3 nL = normalize(L);
     vec3 nV = normalize(V);
     vec3 R = reflect(-nL,norm);
 
-    vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));  
-    vec3 specText = vec3(texture(material.specular, uvTexCoord));  
+    vec3 diffText = vec3(texture(material.diffuse, uvTexCoord));
+    vec3 specText = vec3(texture(material.specular, uvTexCoord));
 
     vec3 ambientColor = light.ambient * diffText;
     vec3 diffuseColor = light.lightIntensity * max(dot(norm, nL), 0.0) * diffText;

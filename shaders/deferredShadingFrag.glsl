@@ -43,7 +43,7 @@ void main() {
 
     // spec
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    vec3 specularColor = light.color * pow(max(dot(Normal, halfwayDir), 0.0), 16.0) * SpecIntensity; // 16, hard coded spec exp
+    vec3 specularColor = light.lightIntensity * pow(max(dot(Normal, halfwayDir), 0.0), 16.0) * SpecIntensity; // 16, hard coded spec exp
     // if(dot(Normal, lightDir))
     //     specularColor = vec3(0.0,0.0,0.0);
 
