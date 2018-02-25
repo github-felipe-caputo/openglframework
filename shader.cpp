@@ -11,22 +11,22 @@
 
 #include "shader.h"
 
-namespace shader 
+namespace shader
 {
 
-/* 
+/*
  * readFile
  *
- * INPUT: 
+ * INPUT:
  *         filename - the filename of the file we want to read.
  *
  * RETURN:
  *         The contents of the the file in a dinamycally alocated
- *         string of GLchar, or NULL if there was an error. 
+ *         string of GLchar, or NULL if there was an error.
  *
  * DESCRIPTION:
  *         This function is responsible for reading a text file and
- *         converting the whole content into a single string. 
+ *         converting the whole content into a single string.
  *
  */
 GLchar* readFile(const char* filename) {
@@ -58,10 +58,10 @@ GLchar* readFile(const char* filename) {
     return fileContent;
 }
 
-/* 
+/*
  * readFile
  *
- * INPUT: 
+ * INPUT:
  *         shaderID - the ID of the shader we want the log.
  *
  *
@@ -93,10 +93,10 @@ void printShaderLog(GLuint shaderID) {
     }
 }
 
-/* 
+/*
  * makeShaderProgram
  *
- * INPUT: 
+ * INPUT:
  *         vert - the filename of vertex shader.
  *         frag - the filename of fragment shader.
  *
@@ -106,13 +106,13 @@ void printShaderLog(GLuint shaderID) {
  * DESCRIPTION:
  *         This function reads the vertex shader file and the
  *         the fragment shader file, and links those together
- *         into a "program", then its ID is returned. 
+ *         into a "program", then its ID is returned.
  *
  */
 GLuint makeShaderProgram(const char *vert, const char *frag) {
     GLuint vertID, fragID, programID;
     GLchar *vertContent = NULL, *fragContent = NULL;
-    GLint flag;
+    GLint flag = 0;
 
     // creating the ID of each shader
     vertID = glCreateShader( GL_VERTEX_SHADER );
@@ -161,11 +161,8 @@ GLuint makeShaderProgram(const char *vert, const char *frag) {
     glAttachShader(programID, vertID);
     glAttachShader(programID, fragID);
 
-    printShaderLog(programID); // If there is anything on the log
-
     glLinkProgram(programID);
-    glGetShaderiv(programID, GL_LINK_STATUS, &flag );
-    printShaderLog(programID);
+    glGetProgramiv(programID, GL_LINK_STATUS, &flag );
     if( flag == GL_FALSE ) {
         fprintf( stderr, "error: error linking vertex shader file '%s' and fragment shader file %s\n", vert, frag);
         return 0;
