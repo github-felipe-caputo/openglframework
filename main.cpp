@@ -66,8 +66,8 @@ float lightPos[] = { 2.0f, 2.0f, 5.0f };
 float lightIntensityRGB[] = { 1.0f, 1.0f, 1.0f };
 float lightAmbientRGB[] = { 0.5f, 0.5f,  0.5f };
 
-float lightDir[] = { 0.0f, 0.0f,  0.0f };
-float lightUp[] = { 0.0f, 1.0f,  0.0f };
+float lightDir[] = { 0.0f, 0.0f, 0.0f };
+float lightUp[] = { 0.0f, 1.0f, 0.0f };
 
 // x, y and z vectors for rotation
 float xVec[] = {1,0,0};
@@ -291,7 +291,7 @@ void display () {
     //glCullFace(GL_FRONT);
     renderScene( programGeometryPass );
     //glCullFace(GL_BACK);
-/*
+
     //
     // Render to to the light pass shader using the generated textures from the geometry one!
     //
@@ -307,8 +307,7 @@ void display () {
     glUseProgram( programLightPass );
 
     renderGBufferToQuad( programLightPass );
-*/
-
+/*
     //
     // Render to Depth Map Quad, on our default framebuffer (debbuging)
     //
@@ -331,7 +330,7 @@ void display () {
     glUniform1i(textureID, 0);
 
     glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
-
+*/
     // swap the buffers
     glutSwapBuffers();
 }
@@ -379,11 +378,6 @@ void renderScene ( const GLuint &targetProgram ) {
 }
 
 void renderGBufferToQuad (const GLuint &targetProgram) {
-
-    // TODO: Is this really necessary? CHECK LATERS
-    GLuint gBufferPositionTextureID = glGetUniformLocation(targetProgram, "gPosition");
-    glUniform1i(gBufferPositionTextureID, 0);
-
     // First the gbuffer textures
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -394,13 +388,31 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, gColorAlbSpec);
 
+    GLuint textureIDgPos = glGetUniformLocation(targetProgram, "gPosition");
+    glUniform1i(textureIDgPos, 0);
+
+    GLuint textureIDgNorm = glGetUniformLocation(targetProgram, "gNormal");
+    glUniform1i(textureIDgNorm, 1);
+
+    GLuint textureIDgColor = glGetUniformLocation(targetProgram, "gColorAlbSpec");
+    glUniform1i(textureIDgColor, 2);
+
     // Send camera pos
+    vector<float> camWorldPos = cam.getCameraPosition();
     GLuint CameraWorldPosID = glGetUniformLocation(targetProgram, "CameraWorldPos");
-    glUniform3fv(CameraWorldPosID, 1, &(cam.getCameraPosition())[0]);
+    glUniform3fv(CameraWorldPosID, 1, &camWorldPos[0]);
 
     // Illumination
     Lighting light(lightPos, lightIntensityRGB, lightAmbientRGB);
     light.setPhongIllumination( targetProgram );
+
+    //
+    // The Shape
+    //
+
+    glBindVertexArray(vaoScreenQuad);
+
+    glDrawElements( GL_TRIANGLES, screenQuadNumElements, GL_UNSIGNED_SHORT, (void*)screenQuadElementByteOffset);
 }
 
 // to use the keyboard

@@ -210,14 +210,11 @@ void Lighting::setPhongIllumination(GLuint program,
  *
  */
 void Lighting::setPhongIllumination(GLuint program) {
-    // TODO: fix these submissions, they are not correct
-    // check how to send specExp
-
     // Light pos initially on vertex shader
     GLuint lightPosID = glGetUniformLocation(program, "lightPos");
     glUniform3fv(lightPosID, 1, lightPosition);
 
-    // To struct on frag shader 
+    // To struct on frag shader
     GLuint lightMaterialPosID = glGetUniformLocation(program, "light.position");
     glUniform3fv(lightMaterialPosID, 1, lightPosition);
 

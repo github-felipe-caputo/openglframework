@@ -24,7 +24,7 @@ void main () {
     uvTexCoord = vTexCoord;
 
     // Calculate the normal values we will pass to the frag shader
-    mat3 normalMatrix = mat3(transpose(inverse(mTransform)));
+    mat3 normalMatrix = transpose(inverse(mat3(mTransform)));
     Normal = normalMatrix * vNormal;
 
     gl_Position = mProjMatrix * mViewMatrix * worldPos;
