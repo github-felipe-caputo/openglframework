@@ -3,7 +3,8 @@
 // Out gbuffer values
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;
-layout (location = 2) out vec4 gColorAlbSpec;
+layout (location = 2) out vec3 gColorAlb;
+layout (location = 3) out vec3 gColorSpec;
 
 // In values from the fragment shader
 in vec3 FragPos;
@@ -25,8 +26,7 @@ void main () {
     // Normal on the g buffer
     gNormal = normalize(Normal);
 
-    // Colors come from separated textures, but we add them on the same
     // g buffer texture
-    gColorAlbSpec.rgb = texture(material.diffuse, uvTexCoord).rgb;
-    gColorAlbSpec.a = texture(material.specular, uvTexCoord).r;
+    gColorAlb = texture(material.diffuse, uvTexCoord).rgb;
+    gColorSpec = texture(material.specular, uvTexCoord).rgb;
 }

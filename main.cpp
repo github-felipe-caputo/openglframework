@@ -50,7 +50,7 @@ GLuint vaoScreenQuad;
 
 // G-Buffer Data
 GLuint gBuffer;
-GLuint gPosition, gNormal, gColorAlbSpec;
+GLuint gPosition, gNormal, gColorAlb, gColorSpec;
 
 GLuint screenQuadElementByteOffset; // used on the draw
 
@@ -100,7 +100,7 @@ void init () {
     // RGB, but a texture with only one encoded value that should be the
     // specular intensity
     shape.clearShape();
-    shape.readObjLightMap( "objects/Pokemon.obj" ,
+    shape.readObjLightMap( "objects/Pokemon3.obj" ,
                            "objects/Final_Pokemon_Diffuse.png",
                            "objects/Final_Pokemon_Specular.png" );
 
@@ -239,17 +239,26 @@ void prepareFramebuffers () {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
 
-    // colors
-    glGenTextures(1, &gColorAlbSpec);
-    glBindTexture(GL_TEXTURE_2D, gColorAlbSpec);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    // colors diff
+    glGenTextures(1, &gColorAlb);
+    glBindTexture(GL_TEXTURE_2D, gColorAlb);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorAlbSpec, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gColorAlb, 0);
+
+    // colors spec
+    glGenTextures(1, &gColorSpec);
+    glBindTexture(GL_TEXTURE_2D, gColorSpec);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, gColorSpec, 0);
 
     // Attachements to draw buffer
-    unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-    glDrawBuffers(3, attachments);
+    unsigned int attachments[4] = {
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+    glDrawBuffers(4, attachments);
 
     //
     // Renderbuffer for Depth
@@ -308,6 +317,7 @@ void display () {
 
     renderGBufferToQuad( programLightPass );
 /*
+
     //
     // Render to Depth Map Quad, on our default framebuffer (debbuging)
     //
@@ -325,7 +335,7 @@ void display () {
 
     // set up textures
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gPosition); // render to quad for debugging
+    glBindTexture(GL_TEXTURE_2D, gNormal); // render to quad for debugging
     GLuint textureID = glGetUniformLocation(programScreen, "screenTexture");
     glUniform1i(textureID, 0);
 
@@ -386,7 +396,10 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     glBindTexture(GL_TEXTURE_2D, gNormal);
 
     glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, gColorAlbSpec);
+    glBindTexture(GL_TEXTURE_2D, gColorAlb);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, gColorSpec);
 
     GLuint textureIDgPos = glGetUniformLocation(targetProgram, "gPosition");
     glUniform1i(textureIDgPos, 0);
@@ -394,8 +407,11 @@ void renderGBufferToQuad (const GLuint &targetProgram) {
     GLuint textureIDgNorm = glGetUniformLocation(targetProgram, "gNormal");
     glUniform1i(textureIDgNorm, 1);
 
-    GLuint textureIDgColor = glGetUniformLocation(targetProgram, "gColorAlbSpec");
-    glUniform1i(textureIDgColor, 2);
+    GLuint textureIDgColorAlb = glGetUniformLocation(targetProgram, "gColorAlb");
+    glUniform1i(textureIDgColorAlb, 2);
+
+    GLuint textureIDgColorSpec = glGetUniformLocation(targetProgram, "gColorSpec");
+    glUniform1i(textureIDgColorSpec, 3);
 
     // Send camera pos
     vector<float> camWorldPos = cam.getCameraPosition();
