@@ -187,6 +187,62 @@ public:
     void moveCameraTarget (int x, int y);
 
     /*
+     * setCameraPosition
+     *
+     * INPUT:
+     *         x - the x coordinate to be set on the camera position.
+     *         y - the y coordinate to be set on the camera position.
+     *         z - the z coordinate to be set on the camera position.
+     *
+     * DESCRIPTION:
+     *         Sets a new camera position
+     *
+     */
+    void setCameraPosition (float x, float y, float z);
+
+    /*
+     * setLookAt
+     *
+     * INPUT:
+     *         x - the x coordinate to be set on the camera lookat.
+     *         y - the y coordinate to be set on the camera lookat.
+     *         z - the z coordinate to be set on the camera lookat.
+     *
+     * DESCRIPTION:
+     *         Sets a new camera lookat
+     *
+     */
+    void setLookAt (float x, float y, float z);
+
+    /*
+     * setRight
+     *
+     * INPUT:
+     *         x - the x coordinate to be set on the camera right vector.
+     *         y - the y coordinate to be set on the camera right vector.
+     *         z - the z coordinate to be set on the camera right vector.
+     *
+     * DESCRIPTION:
+     *         Sets a new camera right vector
+     *
+     */
+    void setRight (float x, float y, float z);
+
+    /*
+     * setUp
+     *
+     * INPUT:
+     *         x - the x coordinate to be set on the camera up vector.
+     *         y - the y coordinate to be set on the camera up vector.
+     *         z - the z coordinate to be set on the camera up vector.
+     *
+     * DESCRIPTION:
+     *         Sets a new camera up vector
+     *
+     */
+    void setUp (float x, float y, float z);
+
+    /*
      * getCameraPosition
      *
      * RETURN:
@@ -197,6 +253,42 @@ public:
      *
      */
     vector<float> getCameraPosition ();
+
+    /*
+     * getLookAt
+     *
+     * RETURN:
+     *         The camera lookAt vector in a vector<float> format.
+     *
+     * DESCRIPTION:
+     *         Simply returns the camera lookAt in a vector format.
+     *
+     */
+    vector<float> getLookAt ();
+
+    /*
+     * getRight
+     *
+     * RETURN:
+     *         The camera right vector position in a vector<float> format.
+     *
+     * DESCRIPTION:
+     *         Simply returns the camera right vector in a vector format.
+     *
+     */
+    vector<float> getRight ();
+
+    /*
+     * getUp
+     *
+     * RETURN:
+     *         The camera up vector in a vector<float> format.
+     *
+     * DESCRIPTION:
+     *         Simply returns the camera up vector in a vector format.
+     *
+     */
+    vector<float> getUp ();
 };
 
 #endif

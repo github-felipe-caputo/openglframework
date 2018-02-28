@@ -208,12 +208,71 @@ void Camera::moveCameraTarget (int x, int y) {
     mouseOldY = y;
 }
 
+
+void Camera::setCameraPosition (float x, float y, float z) {
+    float eyeVec[] = { x, y, z, 1.0f};
+
+    Vector4 eyeAux(4,1,eyeVec);
+    eyePoint = eyeAux;
+}
+
+void Camera::setLookAt (float x, float y, float z) {
+    float lookVec[] = { x, y, z, 1.0f};
+
+    Vector4 lookVecAux(4,1,lookVec);
+    lookAt = lookVecAux;
+}
+
+void Camera::setRight (float x, float y, float z) {
+    float rightVec[] = { x, y, z, 1.0f};
+
+    Vector4 rightVecAux(4,1,rightVec);
+    right = rightVecAux;
+}
+
+void Camera::setUp (float x, float y, float z) {
+    float upVec[] = { x, y, z, 1.0f};
+
+    Vector4 upVecAux(4,1,upVec);
+    up = upVecAux;
+}
+
 vector<float> Camera::getCameraPosition () {
     vector<float> pos;
 
     pos.push_back(eyePoint[0][0]);
     pos.push_back(eyePoint[1][0]);
     pos.push_back(eyePoint[2][0]);
+
+    return pos;
+}
+
+vector<float> Camera::getLookAt () {
+    vector<float> pos;
+
+    pos.push_back(lookAt[0][0]);
+    pos.push_back(lookAt[1][0]);
+    pos.push_back(lookAt[2][0]);
+
+    return pos;
+}
+
+vector<float> Camera::getRight () {
+    vector<float> pos;
+
+    pos.push_back(right[0][0]);
+    pos.push_back(right[1][0]);
+    pos.push_back(right[2][0]);
+
+    return pos;
+}
+
+vector<float> Camera::getUp () {
+    vector<float> pos;
+
+    pos.push_back(up[0][0]);
+    pos.push_back(up[1][0]);
+    pos.push_back(up[2][0]);
 
     return pos;
 }
