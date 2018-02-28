@@ -69,6 +69,9 @@ float lightAmbientRGB[] = { 0.5f, 0.5f,  0.5f };
 float lightDir[] = { 0.0f, 0.0f, 0.0f };
 float lightUp[] = { 0.0f, 1.0f, 0.0f };
 
+// Shape positions
+vector<vector<float>> shapePositions;
+
 // x, y and z vectors for rotation
 float xVec[] = {1,0,0};
 float yVec[] = {0,1,0};
@@ -205,6 +208,32 @@ void init () {
     glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(totalShapeDataSize + vScreenQuadDataSize) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ebuffer );
+
+
+    //
+    // Set up shapes positions
+    //
+
+    shapePositions.push_back({ 0.0, 0.0, 0.0 });
+    shapePositions.push_back({ 0.0, 0.0, -2.0 });
+    shapePositions.push_back({ 0.0, 0.0, -4.0 });
+    shapePositions.push_back({ 0.0, 0.0, -6.0 });
+    shapePositions.push_back({ -2.0, 0.0, 0.0 });
+    shapePositions.push_back({ -2.0, 0.0, -2.0 });
+    shapePositions.push_back({ -2.0, 0.0, -4.0 });
+    shapePositions.push_back({ -2.0, 0.0, -6.0 });
+    shapePositions.push_back({ -4.0, 0.0, 0.0 });
+    shapePositions.push_back({ -4.0, 0.0, -2.0 });
+    shapePositions.push_back({ -4.0, 0.0, -4.0 });
+    shapePositions.push_back({ -4.0, 0.0, -6.0 });
+
+    //
+    // Set up camera positions
+    //
+
+    cam.setCameraPosition(1.40521f, 3.08448f, 3.5350f);
+    cam.setLookAt(-0.486806f, -0.406736f, -0.773034f);
+    cam.setRight(0.846192f, 0.0f, -0.532875f);
 
     // Wireframe test
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -364,7 +393,6 @@ void renderScene ( const GLuint &targetProgram ) {
     // The shape
     //
 
-    glBindVertexArray(vaoShape);
 
     // set up textures
     glActiveTexture(GL_TEXTURE0);
@@ -379,12 +407,19 @@ void renderScene ( const GLuint &targetProgram ) {
     GLuint textureSpecID = glGetUniformLocation(targetProgram, "material.specular");
     glUniform1i(textureSpecID, 1);
 
-    // transforms
-    mTransform = translate(0,-0.6f,-2.0f) * rotate(0, zVec) * rotate(180.0f, yVec) * rotate(0, xVec);
-    glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
+    for(int i = 0; i < shapePositions.size(); ++i) {
+        glBindVertexArray(vaoShape);
 
-    // Drawing elements
-    glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+        // transforms
+        vector<float> pos = shapePositions[i];
+
+        mTransform = translate(pos[0],pos[1],pos[2]) * rotate(0, zVec) * rotate(180.0f, yVec) * rotate(0, xVec);
+        glUniformMatrix4fv(mTransformID, 1, GL_TRUE, &mTransform[0][0]);
+
+        // Drawing elements
+        glDrawElements( GL_TRIANGLES, shapeNumElements, GL_UNSIGNED_SHORT, (void*)0);
+    }
+
 }
 
 void renderGBufferToQuad (const GLuint &targetProgram) {
