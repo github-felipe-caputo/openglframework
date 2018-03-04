@@ -90,9 +90,9 @@ Thre examples of how to use the framework can be seen on the `examples` folder:
 - `phongLightModel.cpp`: shows flat, gouraud and phong lighting on a sphere.
 - `shapesAndLight.cpp`: shows 4 shapes being affected by lighting at the same time, rendered to screen quad.
 - `readingObjs.cpp`, `readingObjVertNorm.cpp`, `readingObjVertTexNorm.cpp`: shows how to load objects from .obj files.
-- `readingObjLightmaps`: render a brick wall using light maps (diffuse, specular and normal mapping).
+- `readingObjLightmaps.cpp`: render a brick wall using light maps (diffuse, specular and normal mapping).
 - `shadowMapping.cpp`: two pass rendering, creates a shadow depth map to render shadows.
-- `deferredShading`: creates a gBuffer with four textures (position, normal, diffuse color and specular color) and uses it for deferred shading.
+- `deferredShading.cpp`: creates a gBuffer with four textures (position, normal, diffuse color and specular color) and uses it for deferred shading.
 
 ## More
 Check [http://fvcaputo.github.io/](http://fvcaputo.github.io/).
