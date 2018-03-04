@@ -7,6 +7,8 @@ As the name implies, this is a (C++) framework for interaction with OpenGL 3.1+.
 - Some simple transformations (translation, rotation, scaling).
 - Phong Illumination implementation.
 - Camera manipulation.
+- Texture mapping support.
+- Deferred Shading.
 
 ## Compiling the code
 To compile the code you will need
@@ -26,7 +28,7 @@ Usage is easy, the only function you will use essentially is `makeShaderProgram`
 ```c++
 // Load shaders
 GLuint program;
-program = shader::makeShaderProgram( "shaders/simpleVert.glsl", 
+program = shader::makeShaderProgram( "shaders/simpleVert.glsl",
                                      "shaders/simpleFrag.glsl" );
 ```
 
@@ -36,11 +38,11 @@ To create shapes you will used the files `shape.cpp` and `shape.h`. They will cr
 ```c++
 // Creating a cube, three sub divisions
 Shape shape;
-shape.makeCube(3); 
+shape.makeCube(3);
 
 // setting materials
-shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f, 
-                   0.89f, 0.0f, 0.0f, 0.7f, 
+shape.setMaterials(0.5f, 0.1f, 0.9f, 0.5f,
+                   0.89f, 0.0f, 0.0f, 0.7f,
                    1.0f, 1.0f, 1.0f, 1.0f, 10.0f);
 
 shape.getVertices(); // return vertices
@@ -58,7 +60,7 @@ Matrix mTransform = translate(-1,-0.9,-4) * rotate(ztheta, zVec) * rotate(ytheta
 So far only the Phong Illumination model is available. Lighting can be set up using `lighting.cpp` and `lighting.h` (and obviously you will need to implement shaders to deal with the values accordingly). Example:
 
 ```c++
-// Creating a light source, 
+// Creating a light source,
 Lighting light(2.0f, 2.0f, -4.0f,  // the light position (x, y, z)
                1.0f, 1.0f,  1.0f,  // the light intensity (r, g, b)
                0.5f, 0.5f,  0.5f); // the value of the ambient light (r, g, b)
@@ -86,8 +88,11 @@ Thre examples of how to use the framework can be seen on the `examples` folder:
 
 - `shapeSubDiv.cpp`: shows different shapes with different mesh subdivisions.
 - `phongLightModel.cpp`: shows flat, gouraud and phong lighting on a sphere.
-- `shapesAndLight.cpp`: shows 4 shapes being affected by lighting at the same time.
+- `shapesAndLight.cpp`: shows 4 shapes being affected by lighting at the same time, rendered to screen quad.
 - `readingObjs.cpp`, `readingObjVertNorm.cpp`, `readingObjVertTexNorm.cpp`: shows how to load objects from .obj files.
+- `readingObjLightmaps`: render a brick wall using light maps (diffuse, specular and normal mapping).
+- `shadowMapping.cpp`: two pass rendering, creates a shadow depth map to render shadows.
+- `deferredShading`: creates a gBuffer with four textures (position, normal, diffuse color and specular color) and uses it for deferred shading.
 
 ## More
 Check [http://fvcaputo.github.io/](http://fvcaputo.github.io/).

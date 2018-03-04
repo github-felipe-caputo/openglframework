@@ -214,26 +214,26 @@ void init () {
     // Set up shapes positions
     //
 
-    shapePositions.push_back({ 0.0, 0.0, 0.0 });
-    shapePositions.push_back({ 0.0, 0.0, -2.0 });
-    shapePositions.push_back({ 0.0, 0.0, -4.0 });
-    shapePositions.push_back({ 0.0, 0.0, -6.0 });
-    shapePositions.push_back({ -2.0, 0.0, 0.0 });
-    shapePositions.push_back({ -2.0, 0.0, -2.0 });
-    shapePositions.push_back({ -2.0, 0.0, -4.0 });
-    shapePositions.push_back({ -2.0, 0.0, -6.0 });
-    shapePositions.push_back({ -4.0, 0.0, 0.0 });
-    shapePositions.push_back({ -4.0, 0.0, -2.0 });
-    shapePositions.push_back({ -4.0, 0.0, -4.0 });
-    shapePositions.push_back({ -4.0, 0.0, -6.0 });
+    shapePositions.push_back({ 0.0, -0.5, 3.0 });
+    shapePositions.push_back({ 0.0, -0.5, 1.0 });
+    shapePositions.push_back({ 0.0, -0.5, -1.0 });
+    shapePositions.push_back({ 0.0, -0.5, -3.0 });
+    shapePositions.push_back({ -2.0, -0.5, 3.0 });
+    shapePositions.push_back({ -2.0, -0.5, 1.0 });
+    shapePositions.push_back({ -2.0, -0.5, -1.0 });
+    shapePositions.push_back({ -2.0, -0.5, -3.0 });
+    shapePositions.push_back({ 2.0, -0.5, 3.0 });
+    shapePositions.push_back({ 2.0, -0.5, 1.0 });
+    shapePositions.push_back({ 2.0, -0.5, -1.0 });
+    shapePositions.push_back({ 2.0, -0.5, -3.0 });
 
     //
     // Set up camera positions
     //
 
-    cam.setCameraPosition(1.40521f, 3.08448f, 3.5350f);
-    cam.setLookAt(-0.486806f, -0.406736f, -0.773034f);
-    cam.setRight(0.846192f, 0.0f, -0.532875f);
+    cam.setCameraPosition(3.37219f, 1.97521f, 6.71925f);
+    cam.setLookAt(-0.494656f, -0.313991f, -0.810377f);
+    cam.setRight(0.853549f, 0, -0.521007f);
 
     // Wireframe test
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
